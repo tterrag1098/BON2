@@ -1,0 +1,20 @@
+# Gradle
+./gradle
+/build
+
+# Eclipse
+.classpath
+.project
+/.settings
+/bin
+
+# IntelliJ
+/.idea
+*.iml
+*.ipr
+*.iws
+/out
+
+# Mac Crap
+.DS_Store
+*.command
