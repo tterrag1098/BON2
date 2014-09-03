@@ -6,3 +6,11 @@ apply plugin: 'idea'
 version = "2.0.0-Beta-" + System.getenv("DRONE_BUILD_NUMBER")
 group = "com.github.parker8283"
 archivesBaseName = "BON"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.ow2.asm:asm-debug-all:4.1'
+}
