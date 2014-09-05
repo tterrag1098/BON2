@@ -22,6 +22,7 @@ public class RefreshListener extends MouseAdapter {
             throw new RuntimeException("The user .gradle isn't a folder. Delete it and try again.", new NotDirectoryException(BONFiles.USER_GRADLE_FOLDER.getAbsolutePath()));
         }
 
+        comboBox.removeAllItems();
         String[] versions = BONFiles.MINECRAFTFORGE_FORGE_FOLDER.list();
         for(String version : versions) {
             comboBox.addItem(version);

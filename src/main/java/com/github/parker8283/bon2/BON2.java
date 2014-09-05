@@ -31,7 +31,7 @@ public class BON2 {
         btnBrouseInput.addMouseListener(new BrowseListener(contentPane.getParent(), true, inputJarLoc));
         btnBrouseOutput.addMouseListener(new BrowseListener(contentPane.getParent(), false, outputJarLoc));
         btnRefreshVers.addMouseListener(new RefreshListener(forgeVersions));
-        btnStart.addMouseListener(new StartListener(new File(inputJarLoc.getText()), new File(outputJarLoc.getText()), (String)forgeVersions.getSelectedItem()));
+        btnStart.addMouseListener(new StartListener(inputJarLoc, outputJarLoc, forgeVersions));
     }
 
     public static void main(String[] args) {
