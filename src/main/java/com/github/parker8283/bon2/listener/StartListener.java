@@ -15,6 +15,7 @@ public class StartListener extends MouseAdapter {
     private JTextField output;
     private JComboBox forgeVer;
     private ClassCollection inputCC;
+    private ClassCollection outputCC;
 
     public StartListener(JTextField input, JTextField output, JComboBox forgeVer) {
         this.input = input;
@@ -28,8 +29,8 @@ public class StartListener extends MouseAdapter {
         try {
             Repo.loadMappings(srgsFolder);
             inputCC = JarUtils.readFromJar(new File(input.getText()));
-            Remapper.remap(inputCC);
-            JarUtils.writeToJar(inputCC, new File(output.getText()));
+            outputCC = Remapper.remap(inputCC);
+            JarUtils.writeToJar(outputCC, new File(output.getText()));
         } catch (Exception ex) {
             throw new RuntimeException("There was an error.", ex);
         }
@@ -37,5 +38,9 @@ public class StartListener extends MouseAdapter {
 
     public ClassCollection getInputClassCollection() {
         return inputCC;
+    }
+
+    public ClassCollection getOutputClassCollection() {
+        return outputCC;
     }
 }

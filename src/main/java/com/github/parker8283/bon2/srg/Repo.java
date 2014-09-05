@@ -20,8 +20,10 @@ public class Repo {
             } else if (mappingType == Mapping.Type.METHOD) {
                 String mcpline = line.substring(4, IOUtils.getSecondToLastIndexOf(line, ' '));
                 String srgLine = line.substring(IOUtils.getSecondToLastIndexOf(line, ' ') + 1);
-                String mcpName = mcpline.substring(0, mcpline.indexOf(' '));
-                String srgName = srgLine.substring(0, srgLine.indexOf(' '));
+                String mcpNameNoSig = mcpline.substring(0, mcpline.indexOf(' '));
+                String srgNameNoSig = srgLine.substring(0, srgLine.indexOf(' '));
+                String mcpName = mcpNameNoSig.substring(mcpNameNoSig.lastIndexOf('/') + 1);
+                String srgName = srgNameNoSig.substring(srgNameNoSig.lastIndexOf('/') + 1);
                 repo.put(srgName, new Mapping(mappingType, mcpName, srgName));
             } else if (mappingType == Mapping.Type.FIELD) {
                 String mcpLine = line.substring(4, line.lastIndexOf(' '));

@@ -7,15 +7,15 @@ import org.objectweb.asm.tree.*;
 
 public class Remapper {
 
-    public static void remap(ClassCollection cc) {
+    public static ClassCollection remap(ClassCollection cc) {
         for (ClassNode classNode : cc.getClasses()) {
             for (MethodNode method : classNode.methods) {
                 if (hasRemap(method.name)) {
                     Mapping mapping = getRemap(method.name);
-                    method.name = mapping.getMcpName().substring(0, mapping.getMcpName().indexOf(' '));
+                    method.name = mapping.getMcpName();
                 }
-                if (method.instructions != null) {
-                    for (AbstractInsnNode node = method.instructions.getFirst(); node != null; node.getNext()) {
+                if (method.instructions != null && method.instructions.size() > 0) {
+                    for (AbstractInsnNode node : method.instructions.toArray()) {
                         if (node instanceof FieldInsnNode) {
                             FieldInsnNode field = (FieldInsnNode) node;
                             if (hasRemap(field.name)) {
@@ -26,7 +26,7 @@ public class Remapper {
                             MethodInsnNode methodInsn = (MethodInsnNode) node;
                             if (hasRemap(methodInsn.name)) {
                                 Mapping mapping = getRemap(methodInsn.name);
-                                methodInsn.name = mapping.getMcpName().substring(0, mapping.getMcpName().indexOf(' '));
+                                methodInsn.name = mapping.getMcpName();
                             }
                         }
                     }
@@ -39,6 +39,7 @@ public class Remapper {
                 }
             }
         }
+        return cc;
     }
 
     private static boolean hasRemap(String key) {
