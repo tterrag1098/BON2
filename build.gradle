@@ -3,9 +3,11 @@ apply plugin: 'maven'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 
-version = "2.0.0-Beta-" + System.getenv("DRONE_BUILD_NUMBER")
+version = "2.0.0"
 group = "com.github.parker8283"
 archivesBaseName = "BON"
+
+sourceCompatibility = 1.6
 
 repositories {
     mavenCentral()
