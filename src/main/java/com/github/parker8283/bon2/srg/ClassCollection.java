@@ -3,6 +3,7 @@ package com.github.parker8283.bon2.srg;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.Manifest;
+
 import org.objectweb.asm.tree.ClassNode;
 
 public class ClassCollection {
@@ -30,14 +31,24 @@ public class ClassCollection {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if(this == o) {
+            return true;
+        }
+        if(o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
-        ClassCollection that = (ClassCollection) o;
+        ClassCollection that = (ClassCollection)o;
 
-        if (classes != null ? !classes.equals(that.classes) : that.classes != null) return false;
-        if (extraFiles != null ? !extraFiles.equals(that.extraFiles) : that.extraFiles != null) return false;
-        if (manifest != null ? !manifest.equals(that.manifest) : that.manifest != null) return false;
+        if(classes != null ? !classes.equals(that.classes) : that.classes != null) {
+            return false;
+        }
+        if(extraFiles != null ? !extraFiles.equals(that.extraFiles) : that.extraFiles != null) {
+            return false;
+        }
+        if(manifest != null ? !manifest.equals(that.manifest) : that.manifest != null) {
+            return false;
+        }
 
         return true;
     }

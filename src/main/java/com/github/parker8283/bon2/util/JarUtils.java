@@ -1,10 +1,5 @@
 package com.github.parker8283.bon2.util;
 
-import com.github.parker8283.bon2.data.IProgressListener;
-import com.github.parker8283.bon2.srg.ClassCollection;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -13,7 +8,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.jar.*;
+
 import org.objectweb.asm.tree.ClassNode;
+
+import com.github.parker8283.bon2.data.IProgressListener;
+import com.github.parker8283.bon2.srg.ClassCollection;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 public class JarUtils {
 
@@ -26,14 +28,14 @@ public class JarUtils {
         try {
             jin = new JarInputStream(new FileInputStream(file), false);
             JarEntry entry;
-            while ((entry = jin.getNextJarEntry()) != null) {
-                if (entry.isDirectory()) {
+            while((entry = jin.getNextJarEntry()) != null) {
+                if(entry.isDirectory()) {
                     continue;
                 }
                 String name = entry.getName();
-                if (name.endsWith(".class")) {
+                if(name.endsWith(".class")) {
                     ClassNode cn = IOUtils.readClassFromBytes(IOUtils.readStreamFully(jin));
-                    if (!name.equals(cn.name + ".class")) {
+                    if(!name.equals(cn.name + ".class")) {
                         throw new RuntimeException("There was an error in reading a class. Corrupted JAR maybe?", new ClassFormatError(name + " != " + cn.name + ".class"));
                     }
                     classes.add(cn);
@@ -43,7 +45,7 @@ public class JarUtils {
             }
             manifest = jin.getManifest();
         } finally {
-            if (jin != null) {
+            if(jin != null) {
                 jin.close();
             }
         }
@@ -62,27 +64,27 @@ public class JarUtils {
             cc.getManifest().write(jout);
             jout.closeEntry();
             progress.setProgress(++classesWritten);
-            for (ClassNode classNode : cc.getClasses()) {
+            for(ClassNode classNode : cc.getClasses()) {
                 addDirectories(classNode.name, dirs);
                 jout.putNextEntry(new JarEntry(classNode.name + ".class"));
                 jout.write(IOUtils.writeClassToBytes(classNode));
                 jout.closeEntry();
                 progress.setProgress(++classesWritten);
             }
-            for (Map.Entry<String, byte[]> entry : cc.getExtraFiles().entrySet()) {
+            for(Map.Entry<String, byte[]> entry : cc.getExtraFiles().entrySet()) {
                 addDirectories(entry.getKey(), dirs);
                 jout.putNextEntry(new JarEntry(entry.getKey()));
                 jout.write(entry.getValue());
                 jout.closeEntry();
                 progress.setProgress(++classesWritten);
             }
-            for (String dirPath : dirs) {
+            for(String dirPath : dirs) {
                 jout.putNextEntry(new JarEntry(dirPath + "/"));
                 jout.closeEntry();
             }
             jout.flush();
         } finally {
-            if (jout != null) {
+            if(jout != null) {
                 jout.close();
             }
         }
@@ -90,10 +92,11 @@ public class JarUtils {
 
     private static void addDirectories(String filePath, Set<String> dirs) {
         int i = filePath.lastIndexOf('/');
-        if (i >= 0) {
+        if(i >= 0) {
             String dirPath = filePath.substring(0, i);
-            if (dirs.add(dirPath))
+            if(dirs.add(dirPath)) {
                 addDirectories(dirPath, dirs);
+            }
         }
     }
 }

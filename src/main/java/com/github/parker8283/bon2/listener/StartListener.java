@@ -1,5 +1,11 @@
 package com.github.parker8283.bon2.listener;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+
+import javax.swing.*;
+
 import com.github.parker8283.bon2.data.BONFiles;
 import com.github.parker8283.bon2.data.IProgressListener;
 import com.github.parker8283.bon2.srg.ClassCollection;
@@ -7,10 +13,6 @@ import com.github.parker8283.bon2.srg.Repo;
 import com.github.parker8283.bon2.util.JarUtils;
 import com.github.parker8283.bon2.util.Remapper;
 import com.google.common.base.Strings;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import javax.swing.*;
 
 public class StartListener extends MouseAdapter {
     private Thread run = null;
@@ -32,7 +34,7 @@ public class StartListener extends MouseAdapter {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        if (run != null && run.isAlive()) {
+        if(run != null && run.isAlive()) {
             return;
         }
         run = new Thread("BON2 Remapping Thread") {
@@ -48,7 +50,7 @@ public class StartListener extends MouseAdapter {
                             @Override
                             public void run() {
                                 progressLabel.setText(label);
-                                if (max >= 0) {
+                                if(max >= 0) {
                                     progressBar.setMaximum(max);
                                 }
                                 progressBar.setValue(0);
@@ -97,7 +99,7 @@ public class StartListener extends MouseAdapter {
                     outputCC = Remapper.remap(inputCC, progress);
                     JarUtils.writeToJar(outputCC, new File(output.getText()), progress);
                     progress.startWithoutProgress("Done!");
-                } catch (Exception ex) {
+                } catch(Exception ex) {
                     throw new RuntimeException("There was an error.", ex);
                 }
             }

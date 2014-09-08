@@ -3,6 +3,7 @@ package com.github.parker8283.bon2.util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
@@ -13,7 +14,7 @@ public class IOUtils {
         ByteArrayOutputStream baos = new ByteArrayOutputStream(Math.max(8192, is.available()));
         byte[] buffer = new byte[8192];
         int read;
-        while ((read = is.read(buffer)) >= 0) {
+        while((read = is.read(buffer)) >= 0) {
             baos.write(buffer, 0, read);
         }
         return baos.toByteArray();

@@ -1,10 +1,11 @@
 package com.github.parker8283.bon2.srg;
 
+import java.io.*;
+import java.util.Map;
+
 import com.github.parker8283.bon2.data.IProgressListener;
 import com.github.parker8283.bon2.util.IOUtils;
 import com.google.common.collect.Maps;
-import java.io.*;
-import java.util.Map;
 
 public class Repo {
     public static final Map<String, Mapping> repo = Maps.newHashMap();
@@ -14,12 +15,12 @@ public class Repo {
         BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(mcpToSrg)));
         String line;
         progress.startWithoutProgress("Reading in mappings");
-        while ((line = br.readLine()) != null) {
+        while((line = br.readLine()) != null) {
             String type = line.substring(0, 2);
             Mapping.Type mappingType = Mapping.Type.getByCode(type);
-            if (mappingType == Mapping.Type.PACKAGE || mappingType == Mapping.Type.CLASS) {
+            if(mappingType == Mapping.Type.PACKAGE || mappingType == Mapping.Type.CLASS) {
                 continue;
-            } else if (mappingType == Mapping.Type.METHOD) {
+            } else if(mappingType == Mapping.Type.METHOD) {
                 String mcpline = line.substring(4, IOUtils.getSecondToLastIndexOf(line, ' '));
                 String srgLine = line.substring(IOUtils.getSecondToLastIndexOf(line, ' ') + 1);
                 String mcpNameNoSig = mcpline.substring(0, mcpline.indexOf(' '));
@@ -27,7 +28,7 @@ public class Repo {
                 String mcpName = mcpNameNoSig.substring(mcpNameNoSig.lastIndexOf('/') + 1);
                 String srgName = srgNameNoSig.substring(srgNameNoSig.lastIndexOf('/') + 1);
                 repo.put(srgName, new Mapping(mappingType, mcpName, srgName));
-            } else if (mappingType == Mapping.Type.FIELD) {
+            } else if(mappingType == Mapping.Type.FIELD) {
                 String mcpLine = line.substring(4, line.lastIndexOf(' '));
                 String srgLine = line.substring(line.lastIndexOf(' ') + 1);
                 String mcpName = mcpLine.substring(mcpLine.lastIndexOf('/') + 1);
