@@ -14,6 +14,6 @@ repositories {
 }
 
 dependencies {
-    compile 'org.ow2.asm:asm-debug-all:4.1'
+    compile 'org.ow2.asm:asm-debug-all:5.0.3'
     compile 'com.google.guava:guava:17.0'
 }
