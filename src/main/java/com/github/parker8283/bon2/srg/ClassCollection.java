@@ -1,16 +1,14 @@
 package com.github.parker8283.bon2.srg;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.Manifest;
 import org.objectweb.asm.tree.ClassNode;
 
 public class ClassCollection {
-    private List<ClassNode> classes = new ArrayList<ClassNode>();
+    private List<ClassNode> classes;
     private Manifest manifest;
-    private Map<String, byte[]> extraFiles = new HashMap<String, byte[]>();
+    private Map<String, byte[]> extraFiles;
 
     public ClassCollection(List<ClassNode> classes, Manifest manifest, Map<String, byte[]> extraFiles) {
         this.classes = classes;

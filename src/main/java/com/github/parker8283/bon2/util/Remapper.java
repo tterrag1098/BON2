@@ -1,5 +1,6 @@
 package com.github.parker8283.bon2.util;
 
+import com.github.parker8283.bon2.data.IProgressListener;
 import com.github.parker8283.bon2.srg.ClassCollection;
 import com.github.parker8283.bon2.srg.Mapping;
 import com.github.parker8283.bon2.srg.Repo;
@@ -7,7 +8,10 @@ import org.objectweb.asm.tree.*;
 
 public class Remapper {
 
-    public static ClassCollection remap(ClassCollection cc) {
+    public static ClassCollection remap(ClassCollection cc, IProgressListener progress) {
+        progress.start(cc.getClasses().size(), "Remapping");
+        int classesRemapped = 0;
+        progress.setMax(cc.getClasses().size());
         for (ClassNode classNode : cc.getClasses()) {
             for (MethodNode method : classNode.methods) {
                 if (hasRemap(method.name)) {
@@ -38,6 +42,7 @@ public class Remapper {
                     field.name = mapping.getMcpName();
                 }
             }
+            progress.setProgress(++classesRemapped);
         }
         return cc;
     }

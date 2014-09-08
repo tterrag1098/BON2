@@ -1,21 +1,28 @@
 package com.github.parker8283.bon2.util;
 
+import com.github.parker8283.bon2.data.IProgressListener;
 import com.github.parker8283.bon2.srg.ClassCollection;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.jar.*;
 import org.objectweb.asm.tree.ClassNode;
 
 public class JarUtils {
 
-    public static ClassCollection readFromJar(File file) throws IOException {
-        List<ClassNode> classes = new ArrayList<ClassNode>();
-        Map<String, byte[]> extraFiles = new HashMap<String, byte[]>();
+    public static ClassCollection readFromJar(File file, IProgressListener progress) throws IOException {
+        List<ClassNode> classes = Lists.newArrayList();
+        Map<String, byte[]> extraFiles = Maps.newHashMap();
         Manifest manifest = null;
         JarInputStream jin = null;
+        progress.startWithoutProgress("Loading Input JAR");
         try {
             jin = new JarInputStream(new FileInputStream(file), false);
             JarEntry entry;
@@ -43,26 +50,31 @@ public class JarUtils {
         return new ClassCollection(classes, manifest, extraFiles);
     }
 
-    public static void writeToJar(ClassCollection cc, File file) throws IOException {
-        Set<String> dirs = new HashSet<String>();
+    public static void writeToJar(ClassCollection cc, File file, IProgressListener progress) throws IOException {
+        int classesWritten = 0;
+        Set<String> dirs = Sets.newHashSet();
         JarOutputStream jout = null;
+        progress.start(cc.getClasses().size() + cc.getExtraFiles().size() + 1, "Writing remapped JAR");
         try {
             jout = new JarOutputStream(new FileOutputStream(file));
             addDirectories(JarFile.MANIFEST_NAME, dirs);
             jout.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
             cc.getManifest().write(jout);
             jout.closeEntry();
+            progress.setProgress(++classesWritten);
             for (ClassNode classNode : cc.getClasses()) {
                 addDirectories(classNode.name, dirs);
                 jout.putNextEntry(new JarEntry(classNode.name + ".class"));
                 jout.write(IOUtils.writeClassToBytes(classNode));
                 jout.closeEntry();
+                progress.setProgress(++classesWritten);
             }
             for (Map.Entry<String, byte[]> entry : cc.getExtraFiles().entrySet()) {
                 addDirectories(entry.getKey(), dirs);
                 jout.putNextEntry(new JarEntry(entry.getKey()));
                 jout.write(entry.getValue());
                 jout.closeEntry();
+                progress.setProgress(++classesWritten);
             }
             for (String dirPath : dirs) {
                 jout.putNextEntry(new JarEntry(dirPath + "/"));

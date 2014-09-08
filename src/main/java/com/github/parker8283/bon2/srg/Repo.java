@@ -1,17 +1,19 @@
 package com.github.parker8283.bon2.srg;
 
+import com.github.parker8283.bon2.data.IProgressListener;
 import com.github.parker8283.bon2.util.IOUtils;
+import com.google.common.collect.Maps;
 import java.io.*;
-import java.util.HashMap;
 import java.util.Map;
 
 public class Repo {
-    public static final Map<String, Mapping> repo = new HashMap<String, Mapping>();
+    public static final Map<String, Mapping> repo = Maps.newHashMap();
 
-    public static void loadMappings(File srgsDir) throws IOException {
+    public static void loadMappings(File srgsDir, IProgressListener progress) throws IOException {
         File mcpToSrg = new File(srgsDir, "mcp-srg.srg");
         BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(mcpToSrg)));
         String line;
+        progress.startWithoutProgress("Reading in mappings");
         while ((line = br.readLine()) != null) {
             String type = line.substring(0, 2);
             Mapping.Type mappingType = Mapping.Type.getByCode(type);

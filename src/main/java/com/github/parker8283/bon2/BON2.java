@@ -14,6 +14,7 @@ import javax.swing.*;
 
 public class BON2 {
     public static final File ASM_JAR = new File(BONFiles.MODULES_FILES_FOLDER, "org.ow2.asm" + File.separator + "asm-debug-all" + File.separator + "4.1" + File.separator + "dd6ba5c392d4102458494e29f54f70ac534ec2a2" + File.separator + "asm-debug-all-4.1.jar");
+    public static final File GUAVA_JAR = new File(BONFiles.MODULES_FILES_FOLDER, "com.google.guava" + File.separator + "guava" + File.separator + "17.0" + File.separator + "9c6ef172e8de35fd8d4d8783e4821e57cdef7445" + File.separator + "guava-17.0.jar");
     private JPanel contentPane;
     private JTextField inputJarLoc;
     private JTextField outputJarLoc;
@@ -26,16 +27,18 @@ public class BON2 {
     private JLabel lblForgeVer;
     private JComboBox forgeVersions;
     private JButton btnRefreshVers;
+    private JLabel lblProgressText;
 
     public BON2() {
         btnBrouseInput.addMouseListener(new BrowseListener(contentPane.getParent(), true, inputJarLoc));
         btnBrouseOutput.addMouseListener(new BrowseListener(contentPane.getParent(), false, outputJarLoc));
         btnRefreshVers.addMouseListener(new RefreshListener(forgeVersions));
-        btnStart.addMouseListener(new StartListener(inputJarLoc, outputJarLoc, forgeVersions));
+        btnStart.addMouseListener(new StartListener(inputJarLoc, outputJarLoc, forgeVersions, lblProgressText, masterProgress));
     }
 
     public static void main(String[] args) {
         addASMToClasspath();
+        addGuavaToClasspath();
         JFrame frame = new JFrame("BON2");
         frame.setResizable(false);
         frame.setContentPane(new BON2().contentPane);
@@ -59,6 +62,25 @@ public class BON2 {
                 ex.printStackTrace();
             } catch (ClassNotFoundException e1) {
                 throw new RuntimeException("ASM couldn't be added to the classpath. Please report to Parker8283.", e1);
+            }
+        }
+    }
+
+    private static void addGuavaToClasspath() {
+        try {
+            Class.forName("com.google.common.collect.Maps");
+        } catch (ClassNotFoundException e) {
+            System.out.println("Guava isn't already in classpath. Adding it...");
+            if (!GUAVA_JAR.exists()) {
+                throw new RuntimeException("Guava couldn't be found. You must run setupDevWorkspace or setupDecompWorkspace at least once in order to use this.", new FileNotFoundException("guava-17.0.jar could not be found"));
+            }
+            try {
+                addUrl(GUAVA_JAR.toURI().toURL());
+                Class.forName("com.google.common.collect.Maps");
+            } catch (MalformedURLException ex) {
+                ex.printStackTrace();
+            } catch (ClassNotFoundException e1) {
+                throw new RuntimeException("Guava couldn't be added to the classpath. Please report to Parker8283.", e1);
             }
         }
     }
