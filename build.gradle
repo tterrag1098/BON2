@@ -17,3 +17,10 @@ dependencies {
     compile 'org.ow2.asm:asm-debug-all:5.0.3'
     compile 'com.google.guava:guava:17.0'
 }
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.github.parker8283.bon2.BON2'
+        attributes 'Built-With': 'Gradle v' + project.getGradle().getGradleVersion()
+    }
+}
