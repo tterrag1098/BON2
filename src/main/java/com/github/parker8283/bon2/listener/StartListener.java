@@ -34,6 +34,9 @@ public class StartListener extends MouseAdapter {
 
     @Override
     public void mouseClicked(MouseEvent e) {
+        if(!input.getText().endsWith(".jar") || !output.getText().endsWith(".jar")) {
+            throw new RuntimeException("You were being an idiot and changed the extension of one of the jars. Don't.");
+        }
         if(run != null && run.isAlive()) {
             return;
         }
@@ -105,13 +108,5 @@ public class StartListener extends MouseAdapter {
             }
         };
         run.start();
-    }
-
-    public ClassCollection getInputClassCollection() {
-        return inputCC;
-    }
-
-    public ClassCollection getOutputClassCollection() {
-        return outputCC;
     }
 }
