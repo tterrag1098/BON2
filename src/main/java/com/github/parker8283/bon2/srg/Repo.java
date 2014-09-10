@@ -14,7 +14,8 @@ public class Repo {
         File mcpToSrg = new File(srgsDir, "mcp-srg.srg");
         BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(mcpToSrg)));
         String line;
-        progress.startWithoutProgress("Reading in mappings");
+        int linesRead = 0;
+        progress.start(21466, "Reading in mappings");
         while((line = br.readLine()) != null) {
             String type = line.substring(0, 2);
             Mapping.Type mappingType = Mapping.Type.getByCode(type);
@@ -35,6 +36,7 @@ public class Repo {
                 String srgName = srgLine.substring(srgLine.lastIndexOf('/') + 1);
                 repo.put(srgName, new Mapping(mappingType, mcpName, srgName));
             }
+            progress.setProgress(++linesRead);
         }
         br.close();
     }
