@@ -15,6 +15,7 @@ import javax.swing.border.EmptyBorder;
 
 import com.github.parker8283.bon2.data.BONFiles;
 import com.github.parker8283.bon2.listener.BrowseListener;
+import com.github.parker8283.bon2.listener.DropListener;
 import com.github.parker8283.bon2.listener.RefreshListener;
 import com.github.parker8283.bon2.listener.StartListener;
 
@@ -57,7 +58,7 @@ public class BON2 extends JFrame {
     public BON2() {
         setResizable(false);
         setTitle("BON2");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setBounds(100, 100, 500, 230);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -67,6 +68,7 @@ public class BON2 extends JFrame {
         lblInput.setHorizontalAlignment(SwingConstants.CENTER);
 
         inputJarLoc = new JTextField();
+        inputJarLoc.setDropTarget(new DropListener(inputJarLoc));
         inputJarLoc.setColumns(10);
 
         JButton btnBrouseInput = new JButton("Browse");
@@ -76,6 +78,7 @@ public class BON2 extends JFrame {
         lblOutput.setHorizontalAlignment(SwingConstants.CENTER);
 
         outputJarLoc = new JTextField();
+        outputJarLoc.setDropTarget(new DropListener(outputJarLoc));
         outputJarLoc.setColumns(10);
 
         btnBrouseOutput = new JButton("Browse");
@@ -86,7 +89,9 @@ public class BON2 extends JFrame {
         JComboBox forgeVersions = new JComboBox();
 
         JButton btnRefreshVers = new JButton("Refresh");
-        btnRefreshVers.addMouseListener(new RefreshListener(forgeVersions));
+        RefreshListener refreshListener = new RefreshListener(forgeVersions);
+        refreshListener.reloadForgeVersions();
+        btnRefreshVers.addMouseListener(refreshListener);
 
         masterProgress = new JProgressBar();
 

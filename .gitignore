@@ -1,6 +1,7 @@
 # Gradle
 ./gradle
 /build
+/.gradle
 
 # Eclipse
 .classpath
