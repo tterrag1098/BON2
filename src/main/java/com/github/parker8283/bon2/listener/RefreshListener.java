@@ -18,6 +18,10 @@ public class RefreshListener extends MouseAdapter {
 
     @Override
     public void mouseClicked(MouseEvent e) {
+		reloadForgeVersions();
+    }
+
+	public void reloadForgeVersions() {
         if(!BONFiles.USER_GRADLE_FOLDER.exists()) {
             throw new RuntimeException("No user .gradle folder found. You must run ForgeGradle at least once in order to use this tool.", new FileNotFoundException("No user .gradle folder found"));
         } else if(!BONFiles.USER_GRADLE_FOLDER.isDirectory()) {

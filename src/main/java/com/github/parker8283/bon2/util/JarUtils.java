@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.jar.*;
 
+import com.github.parker8283.bon2.io.BonJarInputStream;
 import org.objectweb.asm.tree.ClassNode;
 
 import com.github.parker8283.bon2.data.IProgressListener;
@@ -23,10 +24,10 @@ public class JarUtils {
         List<ClassNode> classes = Lists.newArrayList();
         Map<String, byte[]> extraFiles = Maps.newHashMap();
         Manifest manifest = null;
-        JarInputStream jin = null;
+        BonJarInputStream jin = null;
         progress.startWithoutProgress("Loading Input JAR");
         try {
-            jin = new JarInputStream(new FileInputStream(file), false);
+            jin = new BonJarInputStream(file, false);
             JarEntry entry;
             while((entry = jin.getNextJarEntry()) != null) {
                 if(entry.isDirectory()) {
@@ -59,10 +60,15 @@ public class JarUtils {
         progress.start(cc.getClasses().size() + cc.getExtraFiles().size() + 1, "Writing remapped JAR");
         try {
             jout = new JarOutputStream(new FileOutputStream(file));
-            addDirectories(JarFile.MANIFEST_NAME, dirs);
-            jout.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
-            cc.getManifest().write(jout);
-            jout.closeEntry();
+
+            if(cc.getManifest() != null) {
+                addDirectories(JarFile.MANIFEST_NAME, dirs);
+                jout.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
+                cc.getManifest().write(jout);
+                jout.closeEntry();
+                cc.getExtraFiles().remove(JarFile.MANIFEST_NAME);
+            }
+
             progress.setProgress(++classesWritten);
             for(ClassNode classNode : cc.getClasses()) {
                 addDirectories(classNode.name, dirs);
