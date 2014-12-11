@@ -21,7 +21,8 @@ public class BonJarInputStream extends JarInputStream {
 
         JarFile jarFile = new JarFile(in);
         JarEntry manifestEntry = jarFile.getJarEntry(JarFile.MANIFEST_NAME);
-        this.manifest = new Manifest(jarFile.getInputStream(manifestEntry));
+        if(manifestEntry != null)
+            this.manifest = new Manifest(jarFile.getInputStream(manifestEntry));
 
     }
 
