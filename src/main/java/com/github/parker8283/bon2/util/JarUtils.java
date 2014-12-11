@@ -59,10 +59,14 @@ public class JarUtils {
         progress.start(cc.getClasses().size() + cc.getExtraFiles().size() + 1, "Writing remapped JAR");
         try {
             jout = new JarOutputStream(new FileOutputStream(file));
-            addDirectories(JarFile.MANIFEST_NAME, dirs);
-            jout.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
-            cc.getManifest().write(jout);
-            jout.closeEntry();
+
+            if(cc.getManifest() != null) {
+                addDirectories(JarFile.MANIFEST_NAME, dirs);
+                jout.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
+                cc.getManifest().write(jout);
+                jout.closeEntry();
+            }
+
             progress.setProgress(++classesWritten);
             for(ClassNode classNode : cc.getClasses()) {
                 addDirectories(classNode.name, dirs);
