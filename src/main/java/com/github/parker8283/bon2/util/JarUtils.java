@@ -1,17 +1,20 @@
 package com.github.parker8283.bon2.util;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.jar.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 
 import org.objectweb.asm.tree.ClassNode;
 
 import com.github.parker8283.bon2.data.IProgressListener;
+import com.github.parker8283.bon2.io.FixedJarInputStream;
 import com.github.parker8283.bon2.srg.ClassCollection;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -23,10 +26,10 @@ public class JarUtils {
         List<ClassNode> classes = Lists.newArrayList();
         Map<String, byte[]> extraFiles = Maps.newHashMap();
         Manifest manifest = null;
-        JarInputStream jin = null;
+        FixedJarInputStream jin = null;
         progress.startWithoutProgress("Loading Input JAR");
         try {
-            jin = new JarInputStream(new FileInputStream(file), false);
+            jin = new FixedJarInputStream(file, false);
             JarEntry entry;
             while((entry = jin.getNextJarEntry()) != null) {
                 if(entry.isDirectory()) {
@@ -40,6 +43,7 @@ public class JarUtils {
                     }
                     classes.add(cn);
                 } else {
+                    if(name.endsWith(".MF")) continue;
                     extraFiles.put(name, IOUtils.readStreamFully(jin));
                 }
             }
