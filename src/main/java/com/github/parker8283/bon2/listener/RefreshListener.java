@@ -32,8 +32,8 @@ public class RefreshListener extends MouseAdapter {
         comboBox.removeAllItems();
         String[] versions = BONFiles.MINECRAFTFORGE_FORGE_FOLDER.list();
         for(String version : versions) {
-            //noinspection unchecked
             if(!version.startsWith("1.6") && versionMatcher.reset(version).matches()) {
+                //noinspection unchecked
                 comboBox.addItem(version);
             }
         }
