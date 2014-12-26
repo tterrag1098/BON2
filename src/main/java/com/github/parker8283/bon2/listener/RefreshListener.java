@@ -4,13 +4,18 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.FileNotFoundException;
 import java.nio.file.NotDirectoryException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.*;
 
 import com.github.parker8283.bon2.data.BONFiles;
 
 public class RefreshListener extends MouseAdapter {
+    private static final Pattern VERSION_PATTERN = Pattern.compile("^\\d+\\.\\d+(\\.\\d+)?(_\\w+)?-\\d+\\.\\d+\\.\\d+\\.\\d+(-.+)?");
+
     private JComboBox comboBox;
+    private final Matcher versionMatcher = VERSION_PATTERN.matcher("");
 
     public RefreshListener(JComboBox comboBox) {
         this.comboBox = comboBox;
@@ -28,7 +33,9 @@ public class RefreshListener extends MouseAdapter {
         String[] versions = BONFiles.MINECRAFTFORGE_FORGE_FOLDER.list();
         for(String version : versions) {
             //noinspection unchecked
-            comboBox.addItem(version);
+            if(!version.startsWith("1.6") && versionMatcher.reset(version).matches()) {
+                comboBox.addItem(version);
+            }
         }
     }
 }
