@@ -6,10 +6,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
+import java.util.jar.*;
 
 import org.objectweb.asm.tree.ClassNode;
 
@@ -43,11 +40,11 @@ public class JarUtils {
                     }
                     classes.add(cn);
                 } else {
-                    if(name.endsWith(".MF")) continue;
+                    if(name.startsWith("META-INF")) continue;
                     extraFiles.put(name, IOUtils.readStreamFully(jin));
                 }
             }
-            manifest = jin.getManifest();
+            manifest = stripManifest(jin.getManifest());
         } finally {
             if(jin != null) {
                 jin.close();
@@ -102,5 +99,13 @@ public class JarUtils {
                 addDirectories(dirPath, dirs);
             }
         }
+    }
+
+    private static Manifest stripManifest(Manifest manifestIn) {
+        Manifest manifestOut = new Manifest(manifestIn);
+        for(Map.Entry<String, Attributes> entry : manifestIn.getEntries().entrySet()) {
+            manifestOut.getEntries().remove(entry.getKey());
+        }
+        return manifestOut;
     }
 }
