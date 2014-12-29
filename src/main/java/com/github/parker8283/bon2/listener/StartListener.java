@@ -95,7 +95,7 @@ public class StartListener extends MouseAdapter {
                     }
                 };
 
-                File srgsFolder = new File(BONFiles.MINECRAFTFORGE_FORGE_FOLDER, forgeVer.getSelectedItem().toString() + File.separator + "srgs");
+                File srgsFolder = getSrgsFolder(forgeVer);
                 try {
                     Repo.loadMappings(srgsFolder, progress);
                     inputCC = JarUtils.readFromJar(new File(input.getText()), progress);
@@ -108,5 +108,17 @@ public class StartListener extends MouseAdapter {
             }
         };
         run.start();
+    }
+
+    private File getSrgsFolder(JComboBox comboBox) {
+        String selectedVer = comboBox.getSelectedItem().toString();
+        if(selectedVer.endsWith("shipped")) {
+            return new File(BONFiles.MINECRAFTFORGE_FORGE_FOLDER, selectedVer.replace("-shipped", "") + File.separator + "srgs");
+        } else {
+            String forgeVer = selectedVer.substring(0, selectedVer.lastIndexOf('-'));
+            String mappingChan = selectedVer.substring(selectedVer.lastIndexOf('-') + 1, selectedVer.lastIndexOf('_'));
+            String mappingVer = selectedVer.substring(selectedVer.lastIndexOf('_') + 1);
+            return new File(BONFiles.MINECRAFTFORGE_FORGE_FOLDER, forgeVer + File.separator + mappingChan + File.separator + mappingVer + File.separator + "srgs");
+        }
     }
 }
