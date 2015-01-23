@@ -86,7 +86,9 @@ public class BON2 extends JFrame {
         JComboBox forgeVersions = new JComboBox();
 
         JButton btnRefreshVers = new JButton("Refresh");
-        btnRefreshVers.addMouseListener(new RefreshListener(forgeVersions));
+        RefreshListener refresh = new RefreshListener(forgeVersions);
+        btnRefreshVers.addMouseListener(refresh);
+        refresh.mouseClicked(null); // update the versions initially
 
         masterProgress = new JProgressBar();
 
