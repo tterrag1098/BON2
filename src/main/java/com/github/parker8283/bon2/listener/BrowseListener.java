@@ -1,12 +1,14 @@
 package com.github.parker8283.bon2.listener;
 
-import java.awt.*;
+import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 
-import javax.swing.*;
+import javax.swing.JFileChooser;
+import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
 
 public class BrowseListener extends MouseAdapter {
@@ -34,6 +36,7 @@ public class BrowseListener extends MouseAdapter {
                 return "JAR mods only";
             }
         });
+        fileChooser.setCurrentDirectory(new File(Paths.get("").toAbsolutePath().getParent().toString()));
     }
 
     @Override
