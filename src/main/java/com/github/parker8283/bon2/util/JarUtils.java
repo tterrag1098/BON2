@@ -1,5 +1,6 @@
 package com.github.parker8283.bon2.util;
 
+import java.awt.Component;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -8,8 +9,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.jar.*;
 
+import javax.swing.JOptionPane;
+
 import org.objectweb.asm.tree.ClassNode;
 
+import com.github.parker8283.bon2.BON2;
 import com.github.parker8283.bon2.data.IProgressListener;
 import com.github.parker8283.bon2.io.FixedJarInputStream;
 import com.github.parker8283.bon2.srg.ClassCollection;
@@ -19,12 +23,14 @@ import com.google.common.collect.Sets;
 
 public class JarUtils {
 
-    public static ClassCollection readFromJar(File file, IProgressListener progress) throws IOException {
+    public static ClassCollection readFromJar(Component parent, File file, IProgressListener progress) throws IOException {
         List<ClassNode> classes = Lists.newArrayList();
         Map<String, byte[]> extraFiles = Maps.newHashMap();
         Manifest manifest = null;
         FixedJarInputStream jin = null;
-        progress.startWithoutProgress("Loading Input JAR");
+        long fileSize = file.length();
+        long currentProgress = 0;
+        progress.start((int)fileSize, "Loading Input JAR");
         try {
             jin = new FixedJarInputStream(file, false);
             JarEntry entry;
@@ -36,15 +42,17 @@ public class JarUtils {
                 if(name.endsWith(".class")) {
                     ClassNode cn = IOUtils.readClassFromBytes(IOUtils.readStreamFully(jin));
                     if(!name.equals(cn.name + ".class")) {
-                        throw new RuntimeException("There was an error in reading a class. Corrupted JAR maybe?", new ClassFormatError(name + " != " + cn.name + ".class"));
+                        JOptionPane.showMessageDialog(parent, "There was an error in reading a class. Corrupted JAR maybe?\n" + name + " != " + cn.name + ".class", BON2.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
                     }
                     classes.add(cn);
                 } else {
                     if(name.startsWith("META-INF")) continue;
                     extraFiles.put(name, IOUtils.readStreamFully(jin));
                 }
+                progress.setProgress((int)(currentProgress += entry.getCompressedSize()));
             }
             manifest = stripManifest(jin.getManifest());
+            progress.setProgress((int)fileSize);
         } finally {
             if(jin != null) {
                 jin.close();
@@ -54,6 +62,9 @@ public class JarUtils {
     }
 
     public static void writeToJar(ClassCollection cc, File file, IProgressListener progress) throws IOException {
+        if(file.exists()) {
+            file.delete();
+        }
         int classesWritten = 0;
         Set<String> dirs = Sets.newHashSet();
         JarOutputStream jout = null;

@@ -1,11 +1,13 @@
 package com.github.parker8283.bon2.listener;
 
+import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 
 import javax.swing.*;
 
+import com.github.parker8283.bon2.BON2;
 import com.github.parker8283.bon2.data.BONFiles;
 import com.github.parker8283.bon2.data.IProgressListener;
 import com.github.parker8283.bon2.srg.ClassCollection;
@@ -15,6 +17,7 @@ import com.github.parker8283.bon2.util.Remapper;
 import com.google.common.base.Strings;
 
 public class StartListener extends MouseAdapter {
+    private Component parent;
     private Thread run = null;
     private JTextField input;
     private JTextField output;
@@ -24,7 +27,8 @@ public class StartListener extends MouseAdapter {
     private ClassCollection inputCC;
     private ClassCollection outputCC;
 
-    public StartListener(JTextField input, JTextField output, JComboBox forgeVer, JLabel progressLabel, JProgressBar progressBar) {
+    public StartListener(Component parent, JTextField input, JTextField output, JComboBox forgeVer, JLabel progressLabel, JProgressBar progressBar) {
+        this.parent = parent;
         this.input = input;
         this.output = output;
         this.forgeVer = forgeVer;
@@ -35,7 +39,7 @@ public class StartListener extends MouseAdapter {
     @Override
     public void mouseClicked(MouseEvent e) {
         if(!input.getText().endsWith(".jar") || !output.getText().endsWith(".jar")) {
-            throw new RuntimeException("You were being an idiot and changed the extension of one of the jars. Don't.");
+            JOptionPane.showMessageDialog(parent, "Nice try, but only JAR mods work.", BON2.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
         }
         if(run != null && run.isAlive()) {
             return;
@@ -53,6 +57,9 @@ public class StartListener extends MouseAdapter {
                             @Override
                             public void run() {
                                 progressLabel.setText(label);
+                                if(progressBar.isIndeterminate()) {
+                                    progressBar.setIndeterminate(false);
+                                }
                                 if(max >= 0) {
                                     progressBar.setMaximum(max);
                                 }
@@ -68,8 +75,7 @@ public class StartListener extends MouseAdapter {
                             @Override
                             public void run() {
                                 progressLabel.setText(label);
-                                progressBar.setMaximum(1);
-                                progressBar.setValue(1);
+                                progressBar.setIndeterminate(true);
                             }
                         });
                     }
@@ -98,12 +104,13 @@ public class StartListener extends MouseAdapter {
                 File srgsFolder = getSrgsFolder(forgeVer);
                 try {
                     Repo.loadMappings(srgsFolder, progress);
-                    inputCC = JarUtils.readFromJar(new File(input.getText()), progress);
+                    inputCC = JarUtils.readFromJar(parent, new File(input.getText()), progress);
                     outputCC = Remapper.remap(inputCC, progress);
                     JarUtils.writeToJar(outputCC, new File(output.getText()), progress);
-                    progress.startWithoutProgress("Done!");
+                    progress.start(1, "Done!");
+                    progress.setProgress(1);
                 } catch(Exception ex) {
-                    throw new RuntimeException("There was an error.", ex);
+                    JOptionPane.showMessageDialog(parent, "There was an error.\n" + ex.toString(), BON2.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
                 }
             }
         };

@@ -11,6 +11,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
 
+import com.github.parker8283.bon2.BON2;
+
 public class BrowseListener extends MouseAdapter {
     private Component parent;
     private boolean isOpen;
@@ -18,6 +20,7 @@ public class BrowseListener extends MouseAdapter {
     private JFileChooser fileChooser;
 
     public BrowseListener(Component parent, boolean isOpen, JTextField field) {
+        assert parent instanceof BON2 : "Parent component must be an instance of BON2";
         this.parent = parent;
         this.isOpen = isOpen;
         this.field = field;
@@ -53,6 +56,13 @@ public class BrowseListener extends MouseAdapter {
                 field.setText(file.getCanonicalPath());
             } catch(IOException ex) {
                 field.setText(file.getAbsolutePath());
+            }
+            if(isOpen) {
+                try {
+                    ((BON2)parent).getOutputField().setText(file.getCanonicalPath().replace(".jar", "-deobf.jar"));
+                } catch(IOException ex) {
+                    ((BON2)parent).getOutputField().setText(file.getAbsolutePath().replace(".jar", "-deobf.jar"));
+                }
             }
         }
     }

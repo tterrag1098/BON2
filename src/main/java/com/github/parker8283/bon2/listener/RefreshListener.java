@@ -1,35 +1,38 @@
 package com.github.parker8283.bon2.listener;
 
+import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.nio.file.NotDirectoryException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.*;
+import javax.swing.JComboBox;
+import javax.swing.JOptionPane;
 
+import com.github.parker8283.bon2.BON2;
 import com.github.parker8283.bon2.data.BONFiles;
 import com.google.common.collect.Lists;
 
 public class RefreshListener extends MouseAdapter {
     private static final Pattern VERSION_PATTERN = Pattern.compile("^\\d+\\.\\d+(\\.\\d+)?(_\\w+)?-\\d+\\.\\d+\\.\\d+\\.\\d+(-.+)?");
 
+    private Component parent;
     private JComboBox comboBox;
     private final Matcher versionMatcher = VERSION_PATTERN.matcher("");
 
-    public RefreshListener(JComboBox comboBox) {
+    public RefreshListener(Component parent, JComboBox comboBox) {
+        this.parent = parent;
         this.comboBox = comboBox;
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
         if(!BONFiles.USER_GRADLE_FOLDER.exists()) {
-            throw new RuntimeException("No user .gradle folder found. You must run ForgeGradle at least once in order to use this tool.", new FileNotFoundException("No user .gradle folder found"));
+            JOptionPane.showMessageDialog(parent, "No user .gradle folder found. You must run ForgeGradle at least once in order to use this tool.", BON2.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
         } else if(!BONFiles.USER_GRADLE_FOLDER.isDirectory()) {
-            throw new RuntimeException("The user .gradle isn't a folder. Delete it and try again.", new NotDirectoryException(BONFiles.USER_GRADLE_FOLDER.getAbsolutePath()));
+            JOptionPane.showMessageDialog(parent, "The user .gradle isn't a folder. Delete it and try again.", BON2.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
         }
 
         comboBox.removeAllItems();
