@@ -40,11 +40,18 @@ public class JarUtils {
                 }
                 String name = entry.getName();
                 if(name.endsWith(".class")) {
-                    ClassNode cn = IOUtils.readClassFromBytes(IOUtils.readStreamFully(jin));
-                    if(!name.equals(cn.name + ".class")) {
-                        JOptionPane.showMessageDialog(parent, "There was an error in reading a class. Corrupted JAR maybe?\n" + name + " != " + cn.name + ".class", BON2.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
+                    System.out.println(name);
+                    byte[] bytes = IOUtils.readStreamFully(jin);
+                    if(bytes.length > 0) {
+                        ClassNode cn = IOUtils.readClassFromBytes(bytes);
+                        if(!name.equals(cn.name + ".class")) {
+                            JOptionPane.showMessageDialog(parent, "There was an error in reading a class. Corrupted JAR maybe?\n" + name + " != " + cn.name + ".class", BON2.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
+                        } else {
+                            classes.add(cn);
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(parent, "Found a class with no content. Corrupted JAR maybe?\nClass was:" + name + "\nThe class will be skipped.", BON2.ERROR_DIALOG_TITLE, JOptionPane.WARNING_MESSAGE);
                     }
-                    classes.add(cn);
                 } else {
                     if(name.startsWith("META-INF")) continue;
                     extraFiles.put(name, IOUtils.readStreamFully(jin));
