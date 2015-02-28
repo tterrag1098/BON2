@@ -110,7 +110,7 @@ public class StartListener extends MouseAdapter {
                     progress.start(1, "Done!");
                     progress.setProgress(1);
                 } catch(Exception ex) {
-                    JOptionPane.showMessageDialog(parent, "There was an error.\n" + ex.toString(), BON2.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(parent, "There was an error.\n" + ex.toString() + "\n" + getFormattedStackTrace(ex.getStackTrace()), BON2.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
                 }
             }
         };
@@ -127,5 +127,13 @@ public class StartListener extends MouseAdapter {
             String mappingVer = selectedVer.substring(selectedVer.lastIndexOf('_') + 1);
             return new File(BONFiles.MINECRAFTFORGE_FORGE_FOLDER, forgeVer + File.separator + mappingChan + File.separator + mappingVer + File.separator + "srgs");
         }
+    }
+
+    private String getFormattedStackTrace(StackTraceElement[] stacktrace) {
+        StringBuilder sb = new StringBuilder();
+        for(StackTraceElement element : stacktrace) {
+            sb.append(element.toString()).append("\n");
+        }
+        return sb.toString();
     }
 }
