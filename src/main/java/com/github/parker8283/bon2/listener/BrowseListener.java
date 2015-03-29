@@ -39,7 +39,11 @@ public class BrowseListener extends MouseAdapter {
                 return "JAR mods only";
             }
         });
-        fileChooser.setCurrentDirectory(new File(Paths.get("").toAbsolutePath().getParent().toString()));
+        File currentDir = Paths.get("").toAbsolutePath().toFile();
+        while (!currentDir.isDirectory()) {
+            currentDir = currentDir.getParentFile();
+        }
+        fileChooser.setCurrentDirectory(currentDir);
     }
 
     @Override
