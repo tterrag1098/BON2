@@ -53,7 +53,7 @@ public class JarUtils {
                         JOptionPane.showMessageDialog(parent, "Found a class with no content. Corrupted JAR maybe?\nClass was:" + name + "\nThe class will be skipped.", BON2.ERROR_DIALOG_TITLE, JOptionPane.WARNING_MESSAGE);
                     }
                 } else {
-                    if(name.startsWith("META-INF")) continue;
+                    if(name.toUpperCase().contains("MANIFEST.MF")) continue;
                     extraFiles.put(name, IOUtils.readStreamFully(jin));
                 }
                 progress.setProgress((int)(currentProgress += entry.getCompressedSize()));
