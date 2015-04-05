@@ -19,10 +19,10 @@ public class RefreshListener extends MouseAdapter {
     private static final Pattern VERSION_PATTERN = Pattern.compile("^\\d+\\.\\d+(\\.\\d+)?(_\\w+)?-\\d+\\.\\d+\\.\\d+\\.\\d+(-.+)?");
 
     private Component parent;
-    private JComboBox comboBox;
+    private JComboBox<String> comboBox;
     private final Matcher versionMatcher = VERSION_PATTERN.matcher("");
 
-    public RefreshListener(Component parent, JComboBox comboBox) {
+    public RefreshListener(Component parent, JComboBox<String> comboBox) {
         this.parent = parent;
         this.comboBox = comboBox;
     }

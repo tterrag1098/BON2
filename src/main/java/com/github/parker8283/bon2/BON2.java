@@ -1,6 +1,8 @@
 package com.github.parker8283.bon2;
 
 import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -82,12 +84,22 @@ public class BON2 extends JFrame {
 
         lblForgeVer = new JLabel("Forge Version");
 
-        JComboBox forgeVersions = new JComboBox();
+        final JComboBox<String> forgeVersions = new JComboBox<String>();
 
         JButton btnRefreshVers = new JButton("Refresh");
         RefreshListener refresh = new RefreshListener(this, forgeVersions);
         btnRefreshVers.addMouseListener(refresh);
         refresh.mouseClicked(null); // update the versions initially
+        String lastVer = BONFiles.getSavedForgeVersion();
+        if (lastVer != null) {
+            forgeVersions.setSelectedItem(lastVer);
+        }
+        forgeVersions.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                BONFiles.saveForgeVersion(forgeVersions.getItemAt(forgeVersions.getSelectedIndex()));
+            }
+        });
 
         masterProgress = new JProgressBar();
 
@@ -151,14 +163,14 @@ public class BON2 extends JFrame {
     }
 
     private void addUrl(URL url) {
-        URLClassLoader sysloader = (URLClassLoader)BON2.class.getClassLoader();
-        Class sysclass = URLClassLoader.class;
+        URLClassLoader sysloader = (URLClassLoader) BON2.class.getClassLoader();
+        Class<URLClassLoader> sysclass = URLClassLoader.class;
         try {
-            //noinspection unchecked
+            // noinspection unchecked
             Method method = sysclass.getDeclaredMethod("addURL", URL.class);
             method.setAccessible(true);
             method.invoke(sysloader, url);
-        } catch(Exception e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Could not add library to classpath.\n" + e.toString(), ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
         }
     }
