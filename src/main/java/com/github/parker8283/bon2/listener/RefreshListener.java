@@ -89,4 +89,14 @@ public class RefreshListener extends MouseAdapter {
     private boolean hasAdditionalMappings(File file) {
         return new File(file, "snapshot").exists() || new File(file, "snapshot_nodoc").exists() || new File(file, "stable").exists() || new File(file, "stable_nodoc").exists();
     }
+
+    public boolean isValidForgeVer(String candidate) {
+        for(int i = 0; i < comboBox.getItemCount(); i++) {
+            String e = comboBox.getItemAt(i).toString();
+            if(candidate.equals(e)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
