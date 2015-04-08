@@ -13,7 +13,7 @@ import javax.swing.JOptionPane;
 
 import org.objectweb.asm.tree.ClassNode;
 
-import com.github.parker8283.bon2.BON2;
+import com.github.parker8283.bon2.BON2Gui;
 import com.github.parker8283.bon2.data.IProgressListener;
 import com.github.parker8283.bon2.io.FixedJarInputStream;
 import com.github.parker8283.bon2.srg.ClassCollection;
@@ -45,12 +45,12 @@ public class JarUtils {
                     if(bytes.length > 0) {
                         ClassNode cn = IOUtils.readClassFromBytes(bytes);
                         if(!name.equals(cn.name + ".class")) {
-                            JOptionPane.showMessageDialog(parent, "There was an error in reading a class. Corrupted JAR maybe?\n" + name + " != " + cn.name + ".class", BON2.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(parent, "There was an error in reading a class. Corrupted JAR maybe?\n" + name + " != " + cn.name + ".class", BON2Gui.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
                         } else {
                             classes.add(cn);
                         }
                     } else {
-                        JOptionPane.showMessageDialog(parent, "Found a class with no content. Corrupted JAR maybe?\nClass was:" + name + "\nThe class will be skipped.", BON2.ERROR_DIALOG_TITLE, JOptionPane.WARNING_MESSAGE);
+                        JOptionPane.showMessageDialog(parent, "Found a class with no content. Corrupted JAR maybe?\nClass was:" + name + "\nThe class will be skipped.", BON2Gui.ERROR_DIALOG_TITLE, JOptionPane.WARNING_MESSAGE);
                     }
                 } else {
                     if(name.toUpperCase().contains("MANIFEST.MF")) continue;

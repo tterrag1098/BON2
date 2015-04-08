@@ -7,7 +7,7 @@ import java.io.File;
 
 import javax.swing.*;
 
-import com.github.parker8283.bon2.BON2;
+import com.github.parker8283.bon2.BON2Gui;
 import com.github.parker8283.bon2.data.BONFiles;
 import com.github.parker8283.bon2.data.IProgressListener;
 import com.github.parker8283.bon2.srg.ClassCollection;
@@ -38,10 +38,10 @@ public class StartListener extends MouseAdapter {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        assert parent instanceof BON2 : "Parent component must be an instance of BON2";
-        ((BON2)parent).prefs.put(BON2.PREFS_KEY_FORGEVER, forgeVer.getSelectedItem().toString());
+        assert parent instanceof BON2Gui : "Parent component must be an instance of BON2";
+        ((BON2Gui)parent).prefs.put(BON2Gui.PREFS_KEY_FORGEVER, forgeVer.getSelectedItem().toString());
         if(!input.getText().endsWith(".jar") || !output.getText().endsWith(".jar")) {
-            JOptionPane.showMessageDialog(parent, "Nice try, but only JAR mods work.", BON2.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(parent, "Nice try, but only JAR mods work.", BON2Gui.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
         }
         if(run != null && run.isAlive()) {
             return;
@@ -112,7 +112,7 @@ public class StartListener extends MouseAdapter {
                     progress.start(1, "Done!");
                     progress.setProgress(1);
                 } catch(Exception ex) {
-                    JOptionPane.showMessageDialog(parent, "There was an error.\n" + ex.toString() + "\n" + getFormattedStackTrace(ex.getStackTrace()), BON2.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(parent, "There was an error.\n" + ex.toString() + "\n" + getFormattedStackTrace(ex.getStackTrace()), BON2Gui.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
                 }
             }
         };
