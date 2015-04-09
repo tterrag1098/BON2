@@ -4,6 +4,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 import javax.swing.*;
@@ -12,10 +13,12 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.EmptyBorder;
 
 import com.github.parker8283.bon2.data.BONFiles;
-import com.github.parker8283.bon2.listener.BrowseListener;
-import com.github.parker8283.bon2.listener.RefreshListener;
-import com.github.parker8283.bon2.listener.StartListener;
+import com.github.parker8283.bon2.gui.BrowseListener;
+import com.github.parker8283.bon2.gui.RefreshListener;
+import com.github.parker8283.bon2.gui.StartListener;
+import com.github.parker8283.bon2.util.BONUtils;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 public class BON2Gui extends JFrame {
     public static final String ERROR_DIALOG_TITLE = "Error - BON2";
@@ -76,7 +79,7 @@ public class BON2Gui extends JFrame {
         btnRefreshVers.addMouseListener(refresh);
         refresh.mouseClicked(null); // update the versions initially
         String forgeVer = prefs.get(PREFS_KEY_FORGEVER, "");
-        if(!Strings.isNullOrEmpty(forgeVer) && refresh.isValidForgeVer(forgeVer)) {
+        if(!Strings.isNullOrEmpty(forgeVer) && BONUtils.isValidMappingsVer(comboBoxToList(forgeVersions), forgeVer)) {
             forgeVersions.setSelectedItem(forgeVer);
         }
 
@@ -152,5 +155,13 @@ public class BON2Gui extends JFrame {
         } catch(Exception e) {
             JOptionPane.showMessageDialog(this, "Could not add library to classpath.\n" + e.toString(), ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private List<String> comboBoxToList(JComboBox comboBox) {
+        List<String> ret = Lists.newArrayList();
+        for(int i = 0; i < comboBox.getItemCount(); i++) {
+            ret.add(comboBox.getItemAt(i).toString());
+        }
+        return ret;
     }
 }

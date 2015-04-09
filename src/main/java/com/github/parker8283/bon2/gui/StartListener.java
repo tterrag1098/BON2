@@ -1,4 +1,4 @@
-package com.github.parker8283.bon2.listener;
+package com.github.parker8283.bon2.gui;
 
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
