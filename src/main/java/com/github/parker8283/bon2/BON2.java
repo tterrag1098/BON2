@@ -4,6 +4,10 @@ import java.awt.EventQueue;
 import java.io.File;
 import java.io.FileNotFoundException;
 
+import com.github.parker8283.bon2.cli.CLILogHandler;
+import com.github.parker8283.bon2.cli.CLIProgressListener;
+import com.github.parker8283.bon2.data.ILogHandler;
+import com.github.parker8283.bon2.exception.InvalidMappingsVersionException;
 import com.github.parker8283.bon2.util.BONUtils;
 
 import joptsimple.OptionException;
@@ -51,8 +55,23 @@ public class BON2 {
                 new FileNotFoundException(inputJar).printStackTrace();
                 System.exit(1);
             }
-            if(!BONUtils.isValidMappingsVer(mappingsVer)) {
+            if(!BONUtils.buildValidMappings().contains(mappingsVer)) {
+                System.err.println("The provided mappingsVer are invalid. The mappings must exist in your Gradle cache. Format is \"mcVer-forgeVer-mappingVer\"");
+                new InvalidMappingsVersionException(mappingsVer).printStackTrace();
+                System.exit(1);
+            }
+            ILogHandler log = new CLILogHandler();
+            log.info(VERSION);
+            log.info("Input JAR:  " + inputJar);
+            log.info("Output JAR: " + outputJar);
+            log.info("Mappings:   " + mappingsVer);
+            log.info("Debug:      " + debug);
 
+            try {
+                BON2Impl.remap(new File(inputJar), new File(outputJar), mappingsVer, log, new CLIProgressListener(log), false);
+            } catch(Exception e) {
+                log.error(e.getMessage(), e);
+                System.exit(1);
             }
         } catch(OptionException e) {
             e.printStackTrace();

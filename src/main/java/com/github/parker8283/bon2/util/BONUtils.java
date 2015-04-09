@@ -1,11 +1,66 @@
 package com.github.parker8283.bon2.util;
 
+import java.io.File;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import com.github.parker8283.bon2.data.BONFiles;
+import com.google.common.collect.Lists;
 
 public class BONUtils {
+    private static final Pattern VERSION_PATTERN = Pattern.compile("^\\d+\\.\\d+(\\.\\d+)?(_\\w+)?-\\d+\\.\\d+\\.\\d+\\.\\d+(-.+)?");
+    private static final Matcher versionMatcher = VERSION_PATTERN.matcher("");
 
-    //Yes I know, this doesn't need a method. Bleh.
-    public static boolean isValidMappingsVer(List<String> validMappings, String candidate) {
-        return validMappings.contains(candidate);
+    public static List<String> buildValidMappings() {
+        File[] versionFolders = BONFiles.MINECRAFTFORGE_FORGE_FOLDER.listFiles();
+        List<File> acceptedVersions = Lists.newArrayList();
+        for(File file : versionFolders) {
+            String name = file.getName();
+            if(!name.startsWith("1.6") && versionMatcher.reset(name).matches()) {
+                acceptedVersions.add(file);
+            }
+        }
+        List<String> versions = Lists.newArrayList();
+        for(File file : acceptedVersions) {
+            if(new File(file, "srgs").exists()) {
+                versions.add(file.getName() + "-shipped");
+            }
+            if(hasAdditionalMappings(file)) {
+                List<String> additionalMappings = Lists.newArrayList();
+                File mappingDir = new File(file, "snapshot");
+                if(mappingDir.exists()) {
+                    for(String date : mappingDir.list()) {
+                        additionalMappings.add("snapshot_" + date);
+                    }
+                }
+                mappingDir = new File(file, "snapshot_nodoc");
+                if(mappingDir.exists()) {
+                    for(String date : mappingDir.list()) {
+                        additionalMappings.add("snapshot_nodoc_" + date);
+                    }
+                }
+                mappingDir = new File(file, "stable");
+                if(mappingDir.exists()) {
+                    for(String date : mappingDir.list()) {
+                        additionalMappings.add("stable_" + date);
+                    }
+                }
+                mappingDir = new File(file, "stable_nodoc");
+                if(mappingDir.exists()) {
+                    for(String date : mappingDir.list()) {
+                        additionalMappings.add("stable_nodoc_" + date);
+                    }
+                }
+                for(String mapping : additionalMappings) {
+                    versions.add(file.getName() + "-" + mapping);
+                }
+            }
+        }
+        return versions;
+    }
+
+    private static boolean hasAdditionalMappings(File file) {
+        return new File(file, "snapshot").exists() || new File(file, "snapshot_nodoc").exists() || new File(file, "stable").exists() || new File(file, "stable_nodoc").exists();
     }
 }

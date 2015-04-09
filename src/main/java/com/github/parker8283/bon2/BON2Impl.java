@@ -3,18 +3,20 @@ package com.github.parker8283.bon2;
 import java.io.File;
 
 import com.github.parker8283.bon2.data.ILogHandler;
+import com.github.parker8283.bon2.data.IProgressListener;
 
 public class BON2Impl {
 
     /**
-     * Deobfuscates
+     * Deobfuscates the inputJar to MCP names using the passed-in mappings.
      * @param inputJar Jar mapped to SRG names to be deobfuscated.
      * @param outputJar The file that will be the remapped jar.
      * @param mappings The mappings to use. In form "minecraftVer-forgeVer-mappingVer".
      * @param logHandler An ILogHandler impl to handle logging messages from the remapping process.
+     * @param progressListener An IProgressListener impl to handle listening to the progress of the remapping.
      * @param thread true if we should thread the process.
      */
-    public static void remap(File inputJar, File outputJar, String mappings, ILogHandler logHandler, boolean thread) {
+    public static void remap(File inputJar, File outputJar, String mappings, ILogHandler logHandler, IProgressListener progressListener, boolean thread) {
         //TODO Move process into here
     }
 

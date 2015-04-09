@@ -16,7 +16,6 @@ import com.github.parker8283.bon2.data.BONFiles;
 import com.github.parker8283.bon2.gui.BrowseListener;
 import com.github.parker8283.bon2.gui.RefreshListener;
 import com.github.parker8283.bon2.gui.StartListener;
-import com.github.parker8283.bon2.util.BONUtils;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
@@ -79,7 +78,7 @@ public class BON2Gui extends JFrame {
         btnRefreshVers.addMouseListener(refresh);
         refresh.mouseClicked(null); // update the versions initially
         String forgeVer = prefs.get(PREFS_KEY_FORGEVER, "");
-        if(!Strings.isNullOrEmpty(forgeVer) && BONUtils.isValidMappingsVer(comboBoxToList(forgeVersions), forgeVer)) {
+        if(!Strings.isNullOrEmpty(forgeVer) && comboBoxToList(forgeVersions).contains(forgeVer)) {
             forgeVersions.setSelectedItem(forgeVer);
         }
 

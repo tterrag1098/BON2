@@ -5,21 +5,15 @@ import com.github.parker8283.bon2.data.ILogHandler;
 public class CLILogHandler implements ILogHandler {
 
     @Override
-    public void debug(boolean doLogDebug, String message, Throwable t) {
+    public void debug(boolean doLogDebug, String message) {
         if(doLogDebug) {
             System.out.println("[BON2] [DEBUG] " + message);
-            if(t != null) {
-                t.printStackTrace(System.out);
-            }
         }
     }
 
     @Override
-    public void info(String message, Throwable t) {
+    public void info(String message) {
         System.out.println("[BON2] [INFO] " + message);
-        if(t != null) {
-            t.printStackTrace(System.out);
-        }
     }
 
     @Override
