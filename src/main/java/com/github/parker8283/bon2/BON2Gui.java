@@ -1,9 +1,5 @@
 package com.github.parker8283.bon2;
 
-import java.io.File;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.List;
 import java.util.prefs.Preferences;
 
@@ -12,7 +8,6 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.EmptyBorder;
 
-import com.github.parker8283.bon2.data.BONFiles;
 import com.github.parker8283.bon2.gui.BrowseListener;
 import com.github.parker8283.bon2.gui.RefreshListener;
 import com.github.parker8283.bon2.gui.StartListener;
@@ -21,12 +16,9 @@ import com.google.common.collect.Lists;
 
 public class BON2Gui extends JFrame {
     public static final String ERROR_DIALOG_TITLE = "Error - BON2";
-    public static final File ASM_4_JAR = new File(BONFiles.MODULES_FILES_FOLDER, "org.ow2.asm" + File.separator + "asm-debug-all" + File.separator + "4.1" + File.separator + "dd6ba5c392d4102458494e29f54f70ac534ec2a2" + File.separator + "asm-debug-all-4.1.jar");
-    public static final File ASM_5_JAR = new File(BONFiles.MODULES_FILES_FOLDER, "org.ow2.asm" + File.separator + "asm-debug-all" + File.separator + "5.0.3" + File.separator + "f9e364ae2a66ce2a543012a4668856e84e5dab74" + File.separator + "asm-debug-all-5.0.3.jar");
-    public static final File GUAVA_JAR = new File(BONFiles.MODULES_FILES_FOLDER, "com.google.guava" + File.separator + "guava" + File.separator + "17.0" + File.separator + "9c6ef172e8de35fd8d4d8783e4821e57cdef7445" + File.separator + "guava-17.0.jar");
-    public final Preferences prefs = Preferences.userNodeForPackage(BON2Gui.class);
     public static final String PREFS_KEY_FORGEVER = "forgeVer";
-    public static final long serialVersionUID = -619289399889088924L;
+    public final Preferences prefs = Preferences.userNodeForPackage(BON2Gui.class);
+    private static final long serialVersionUID = -619289399889088924L;
 
     private JPanel contentPane;
     private JTextField inputJarLoc;
@@ -41,8 +33,6 @@ public class BON2Gui extends JFrame {
      * Create the frame.
      */
     public BON2Gui() {
-        addASMToClasspath();
-        addGuavaToClasspath();
         setResizable(false);
         setTitle("BON2");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -98,62 +88,6 @@ public class BON2Gui extends JFrame {
 
     public JTextField getOutputField() {
         return outputJarLoc;
-    }
-
-    private void addASMToClasspath() {
-        try {
-            Class.forName("org.objectweb.asm.Opcodes");
-        } catch(ClassNotFoundException e) {
-            System.out.println("ASM isn't already in classpath. Adding it...");
-            if(!ASM_5_JAR.exists()) {
-                System.err.println("ASM 5 could not be found. Trying ASM 4...");
-                if(!ASM_4_JAR.exists()) {
-                    JOptionPane.showMessageDialog(this, "ASM couldn't be found. You must run setupDevWorkspace or setupDecompWorkspace at least once in order to use this tool.", ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
-                }
-                try {
-                    addUrl(ASM_4_JAR.toURI().toURL());
-                    Class.forName("org.objectweb.asm.Opcodes");
-                } catch(Exception ex) {
-                    JOptionPane.showMessageDialog(this, "ASM couldn't be added to the classpath. Please report to Parker8283.\n" + ex.toString(), ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
-                }
-            }
-            try {
-                addUrl(ASM_5_JAR.toURI().toURL());
-                Class.forName("org.objectweb.asm.Opcodes");
-            } catch(Exception ex) {
-                JOptionPane.showMessageDialog(this, "ASM couldn't be added to the classpath. Please report to Parker8283.\n" + ex.toString(), ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
-    private void addGuavaToClasspath() {
-        try {
-            Class.forName("com.google.common.collect.Maps");
-        } catch(ClassNotFoundException e) {
-            System.out.println("Guava isn't already in classpath. Adding it...");
-            if(!GUAVA_JAR.exists()) {
-                JOptionPane.showMessageDialog(this, "Guava couldn't be found. You must run setupDevWorkspace or setupDecompWorkspace at least once in order to use this.", ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
-            }
-            try {
-                addUrl(GUAVA_JAR.toURI().toURL());
-                Class.forName("com.google.common.collect.Maps");
-            } catch(Exception ex) {
-                JOptionPane.showMessageDialog(this, "Guava couldn't be added to the classpath. Please report to Parker8283.\n" + ex.toString(), ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
-    private void addUrl(URL url) {
-        URLClassLoader sysloader = (URLClassLoader)BON2Gui.class.getClassLoader();
-        Class sysclass = URLClassLoader.class;
-        try {
-            //noinspection unchecked
-            Method method = sysclass.getDeclaredMethod("addURL", URL.class);
-            method.setAccessible(true);
-            method.invoke(sysloader, url);
-        } catch(Exception e) {
-            JOptionPane.showMessageDialog(this, "Could not add library to classpath.\n" + e.toString(), ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
-        }
     }
 
     private List<String> comboBoxToList(JComboBox comboBox) {
