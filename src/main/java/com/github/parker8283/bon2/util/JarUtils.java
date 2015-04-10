@@ -1,6 +1,5 @@
 package com.github.parker8283.bon2.util;
 
-import java.awt.Component;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -9,11 +8,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.jar.*;
 
-import javax.swing.JOptionPane;
-
 import org.objectweb.asm.tree.ClassNode;
 
-import com.github.parker8283.bon2.BON2Gui;
+import com.github.parker8283.bon2.data.IErrorHandler;
 import com.github.parker8283.bon2.data.IProgressListener;
 import com.github.parker8283.bon2.io.FixedJarInputStream;
 import com.github.parker8283.bon2.srg.ClassCollection;
@@ -23,7 +20,7 @@ import com.google.common.collect.Sets;
 
 public class JarUtils {
 
-    public static ClassCollection readFromJar(Component parent, File file, IProgressListener progress) throws IOException {
+    public static ClassCollection readFromJar(File file, IErrorHandler errorHandler, IProgressListener progress) throws IOException {
         List<ClassNode> classes = Lists.newArrayList();
         Map<String, byte[]> extraFiles = Maps.newHashMap();
         Manifest manifest = null;
@@ -40,17 +37,16 @@ public class JarUtils {
                 }
                 String name = entry.getName();
                 if(name.endsWith(".class")) {
-                    System.out.println(name);
                     byte[] bytes = IOUtils.readStreamFully(jin);
                     if(bytes.length > 0) {
                         ClassNode cn = IOUtils.readClassFromBytes(bytes);
                         if(!name.equals(cn.name + ".class")) {
-                            JOptionPane.showMessageDialog(parent, "There was an error in reading a class. Corrupted JAR maybe?\n" + name + " != " + cn.name + ".class", BON2Gui.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
+                            errorHandler.handleError("There was an error in reading a class. Corrupted JAR maybe?\n" + name + " != " + cn.name + ".class", false);
                         } else {
                             classes.add(cn);
                         }
                     } else {
-                        JOptionPane.showMessageDialog(parent, "Found a class with no content. Corrupted JAR maybe?\nClass was:" + name + "\nThe class will be skipped.", BON2Gui.ERROR_DIALOG_TITLE, JOptionPane.WARNING_MESSAGE);
+                        errorHandler.handleError("Found a class with no content. Corrupted JAR maybe?\nClass was:" + name + "\nThe class will be skipped.", true);
                     }
                 } else {
                     if(name.toUpperCase().contains("MANIFEST.MF")) continue;

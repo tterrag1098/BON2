@@ -4,9 +4,9 @@ import java.awt.EventQueue;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-import com.github.parker8283.bon2.cli.CLILogHandler;
+import com.github.parker8283.bon2.cli.CLIErrorHandler;
 import com.github.parker8283.bon2.cli.CLIProgressListener;
-import com.github.parker8283.bon2.data.ILogHandler;
+import com.github.parker8283.bon2.data.IErrorHandler;
 import com.github.parker8283.bon2.exception.InvalidMappingsVersionException;
 import com.github.parker8283.bon2.util.BONUtils;
 
@@ -60,17 +60,18 @@ public class BON2 {
                 new InvalidMappingsVersionException(mappingsVer).printStackTrace();
                 System.exit(1);
             }
-            ILogHandler log = new CLILogHandler();
-            log.info(VERSION);
-            log.info("Input JAR:  " + inputJar);
-            log.info("Output JAR: " + outputJar);
-            log.info("Mappings:   " + mappingsVer);
-            log.info("Debug:      " + debug);
+            IErrorHandler errorHandler = new CLIErrorHandler();
+
+            log(VERSION);
+            log("Input JAR:  " + inputJar);
+            log("Output JAR: " + outputJar);
+            log("Mappings:   " + mappingsVer);
+            log("Debug:      " + debug);
 
             try {
-                BON2Impl.remap(new File(inputJar), new File(outputJar), mappingsVer, log, new CLIProgressListener(log), false);
+                BON2Impl.remap(new File(inputJar), new File(outputJar), mappingsVer, errorHandler, new CLIProgressListener());
             } catch(Exception e) {
-                log.error(e.getMessage(), e);
+                logErr(e.getMessage(), e);
                 System.exit(1);
             }
         } catch(OptionException e) {
@@ -79,7 +80,18 @@ public class BON2 {
         }
     }
 
+    private static void log(String message) {
+        System.out.println(message);
+    }
+
+    private static void logErr(String message, Throwable t) {
+        System.err.println(message);
+        t.printStackTrace();
+    }
+
     private static void launchGui() {
+        log(VERSION);
+        log("No arguments passed. Launching gui...");
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {

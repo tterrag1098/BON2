@@ -60,6 +60,17 @@ public class BONUtils {
         return versions;
     }
 
+    public static File getSrgsFolder(String mappingsVer) {
+        if(mappingsVer.endsWith("shipped")) {
+            return new File(BONFiles.MINECRAFTFORGE_FORGE_FOLDER, mappingsVer.replace("-shipped", "") + File.separator + "srgs");
+        } else {
+            String forgeVer = mappingsVer.substring(0, mappingsVer.lastIndexOf('-'));
+            String mappingChan = mappingsVer.substring(mappingsVer.lastIndexOf('-') + 1, mappingsVer.lastIndexOf('_'));
+            String mappingVer = mappingsVer.substring(mappingsVer.lastIndexOf('_') + 1);
+            return new File(BONFiles.MINECRAFTFORGE_FORGE_FOLDER, forgeVer + File.separator + mappingChan + File.separator + mappingVer + File.separator + "srgs");
+        }
+    }
+
     private static boolean hasAdditionalMappings(File file) {
         return new File(file, "snapshot").exists() || new File(file, "snapshot_nodoc").exists() || new File(file, "stable").exists() || new File(file, "stable_nodoc").exists();
     }

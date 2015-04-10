@@ -1,9 +1,15 @@
 package com.github.parker8283.bon2;
 
 import java.io.File;
+import java.io.IOException;
 
-import com.github.parker8283.bon2.data.ILogHandler;
+import com.github.parker8283.bon2.data.IErrorHandler;
 import com.github.parker8283.bon2.data.IProgressListener;
+import com.github.parker8283.bon2.srg.ClassCollection;
+import com.github.parker8283.bon2.srg.Repo;
+import com.github.parker8283.bon2.util.BONUtils;
+import com.github.parker8283.bon2.util.JarUtils;
+import com.github.parker8283.bon2.util.Remapper;
 
 public class BON2Impl {
 
@@ -12,12 +18,17 @@ public class BON2Impl {
      * @param inputJar Jar mapped to SRG names to be deobfuscated.
      * @param outputJar The file that will be the remapped jar.
      * @param mappings The mappings to use. In form "minecraftVer-forgeVer-mappingVer".
-     * @param logHandler An ILogHandler impl to handle logging messages from the remapping process.
+     * @param errorHandler An IErrorHandler impl to handle when an error is encountered in the remapping process.
      * @param progressListener An IProgressListener impl to handle listening to the progress of the remapping.
-     * @param thread true if we should thread the process.
      */
-    public static void remap(File inputJar, File outputJar, String mappings, ILogHandler logHandler, IProgressListener progressListener, boolean thread) {
-        //TODO Move process into here
+    public static void remap(File inputJar, File outputJar, String mappings, IErrorHandler errorHandler, IProgressListener progressListener) throws IOException {
+        File srgsFolder = BONUtils.getSrgsFolder(mappings);
+        Repo.loadMappings(srgsFolder, progressListener);
+        ClassCollection inputCC = JarUtils.readFromJar(inputJar, errorHandler, progressListener);
+        ClassCollection outputCC = Remapper.remap(inputCC, progressListener);
+        JarUtils.writeToJar(outputCC, outputJar, progressListener);
+        progressListener.start(1, "Done!");
+        progressListener.setProgress(1);
     }
 
     /**

@@ -20,7 +20,7 @@ public class BrowseListener extends MouseAdapter {
     private JFileChooser fileChooser;
 
     public BrowseListener(Component parent, boolean isOpen, JTextField field) {
-        assert parent instanceof BON2Gui : "Parent component must be an instance of BON2";
+        assert parent instanceof BON2Gui : "Parent component must be an instance of BON2Gui";
         this.parent = parent;
         this.isOpen = isOpen;
         this.field = field;
