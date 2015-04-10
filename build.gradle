@@ -19,11 +19,11 @@ dependencies {
 
 task copyAndReplace(type: Copy) {
     from(sourceSets.main.java) {
-        include '**/ClassRemapper.java'
+        include '**/BON2.java'
         expand 'DEV': project.version
     }
     from(sourceSets.main.java) {
-        exclude '**/ClassRemapper.java'
+        exclude '**/BON2.java'
     }
     into project.getBuildDir().toString() + "/sources/java"
 }
