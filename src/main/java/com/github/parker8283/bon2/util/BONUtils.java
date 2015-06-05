@@ -15,6 +15,7 @@ public class BONUtils {
     public static List<String> buildValidMappings() {
         File[] versionFolders = BONFiles.MINECRAFTFORGE_FORGE_FOLDER.listFiles();
         List<File> acceptedVersions = Lists.newArrayList();
+        if(versionFolders == null) return new ArrayList<>();
         for(File file : versionFolders) {
             String name = file.getName();
             if(!name.startsWith("1.6") && versionMatcher.reset(name).matches()) {
