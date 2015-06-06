@@ -1,13 +1,13 @@
 package com.github.parker8283.bon2.util;
 
-import com.github.parker8283.bon2.data.BONFiles;
-import com.google.common.collect.Lists;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.github.parker8283.bon2.data.BONFiles;
+import com.google.common.collect.Lists;
 
 public class BONUtils {
     private static final Pattern VERSION_PATTERN = Pattern.compile("^\\d+\\.\\d+(\\.\\d+)?(_\\w+)?-\\d+\\.\\d+\\.\\d+\\.\\d+(-.+)?");
