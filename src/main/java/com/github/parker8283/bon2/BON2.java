@@ -4,6 +4,8 @@ import java.awt.EventQueue;
 import java.io.File;
 import java.io.FileNotFoundException;
 
+import javax.swing.UIManager;
+
 import com.github.parker8283.bon2.cli.CLIErrorHandler;
 import com.github.parker8283.bon2.cli.CLIProgressListener;
 import com.github.parker8283.bon2.data.IErrorHandler;
@@ -95,6 +97,7 @@ public class BON2 {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                     BON2Gui frame = new BON2Gui();
                     frame.setVisible(true);
                 } catch(Exception e) {

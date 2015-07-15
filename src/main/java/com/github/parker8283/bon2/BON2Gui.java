@@ -1,5 +1,6 @@
 package com.github.parker8283.bon2;
 
+import java.awt.Dimension;
 import java.util.List;
 import java.util.prefs.Preferences;
 
@@ -33,10 +34,10 @@ public class BON2Gui extends JFrame {
      * Create the frame.
      */
     public BON2Gui() {
-        setResizable(false);
+        setMinimumSize(new Dimension(550, 210));
         setTitle("BON2");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setBounds(100, 100, 550, 230);
+        setBounds(100, 100, 550, 210);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);

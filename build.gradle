@@ -3,7 +3,7 @@ apply plugin: 'maven'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 
-version = "2.2.1"
+version = "2.2.2"
 group = "com.github.parker8283"
 archivesBaseName = "BON"
 
@@ -14,7 +14,7 @@ repositories {
 dependencies {
     compile 'org.ow2.asm:asm-debug-all:5.0.4'
     compile 'com.google.guava:guava:18.0'
-    compile 'net.sf.jopt-simple:jopt-simple:4.8'
+    compile 'net.sf.jopt-simple:jopt-simple:4.9'
 }
 
 task copyAndReplace(type: Copy) {
