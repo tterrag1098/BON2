@@ -12,4 +12,7 @@ public class BONFiles {
     public static final File NET_MINECRAFT_FOLDER = new File(MINECRAFT_NET_FOLDER, "minecraft");
     public static final File CACHES_MODULES_FOLDER = new File(GRADLE_CACHES_FOLDER, "modules-2");
     public static final File MODULES_FILES_FOLDER = new File(CACHES_MODULES_FOLDER, "files-2.1");
+    public static final File DE_FOLDER = new File(CACHES_MINECRAFT_FOLDER, "de");
+    public static final File OCEANLABS_FOLDER = new File(DE_FOLDER, "oceanlabs");
+    public static final File MCP_FOLDER = new File(OCEANLABS_FOLDER, "mcp");
 }

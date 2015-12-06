@@ -71,7 +71,11 @@ public class BONUtils {
             String forgeVer = mappingsVer.substring(0, mappingsVer.lastIndexOf('-'));
             String mappingChan = mappingsVer.substring(mappingsVer.lastIndexOf('-') + 1, mappingsVer.lastIndexOf('_'));
             String mappingVer = mappingsVer.substring(mappingsVer.lastIndexOf('_') + 1);
-            return new File(BONFiles.MINECRAFTFORGE_FORGE_FOLDER, forgeVer + File.separator + mappingChan + File.separator + mappingVer + File.separator + "srgs");
+            File srg = new File(BONFiles.MINECRAFTFORGE_FORGE_FOLDER, forgeVer + File.separator + mappingChan + File.separator + mappingVer + File.separator + "srgs");
+            if(!srg.exists()){
+                srg = new File(BONFiles.MCP_FOLDER, "mcp_" + mappingChan + File.separator + mappingVer + File.separator + "srgs");
+            }
+            return srg;
         }
     }
 
