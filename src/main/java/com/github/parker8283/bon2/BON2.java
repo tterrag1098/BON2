@@ -33,7 +33,7 @@ public class BON2 {
         parser.accepts("version", "Prints the version string").forHelp();
         parser.accepts("inputJar", "The jar file to deobfuscate").withRequiredArg().required();
         parser.accepts("outputJar", "The location and name of the output jar. Defaults to same dir and appends \"-deobf\"").withRequiredArg();
-        parser.accepts("mappingsVer", "The version of the mappings to use. Must exist in Gradle cache. Format is \"mcVer-forgeVer-mappingVer\"").withRequiredArg().required();
+        parser.accepts("mappingsVer", "The version of the mappings to use. Must exist in Gradle cache. Format is \"mcVer-forgeVer-mappingVer\". For use with FG2, use \"1.8(.8)-mappingVer\". This is a temporary solution until BON 2.3.").withRequiredArg().required();
         parser.accepts("debug", "Enables extra debug logging. Helpful to figure out what the hell is going on.");
 
         try {
@@ -58,7 +58,7 @@ public class BON2 {
                 System.exit(1);
             }
             if(!BONUtils.buildValidMappings().contains(mappingsVer)) {
-                System.err.println("The provided mappingsVer are invalid. The mappings must exist in your Gradle cache. Format is \"mcVer-forgeVer-mappingVer\"");
+                System.err.println("The provided mappingsVer are invalid. The mappings must exist in your Gradle cache. Format is \"mcVer-forgeVer-mappingVer\". For use with FG2, use \"1.8(.8)-mappingVer\". This is a temporary solution until BON 2.3.");
                 new InvalidMappingsVersionException(mappingsVer).printStackTrace();
                 System.exit(1);
             }
