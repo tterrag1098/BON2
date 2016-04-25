@@ -76,7 +76,9 @@ public class JarUtils {
             jout = new JarOutputStream(new FileOutputStream(file));
             addDirectories(JarFile.MANIFEST_NAME, dirs);
             jout.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
-            cc.getManifest().write(jout);
+            if(cc.getManifest() != null){
+                cc.getManifest().write(jout);
+            }
             jout.closeEntry();
             progress.setProgress(++classesWritten);
             for(ClassNode classNode : cc.getClasses()) {
@@ -116,6 +118,9 @@ public class JarUtils {
     }
 
     private static Manifest stripManifest(Manifest manifestIn) {
+        if(manifestIn == null){
+            return manifestIn;
+        }
         Manifest manifestOut = new Manifest(manifestIn);
         for(Map.Entry<String, Attributes> entry : manifestIn.getEntries().entrySet()) {
             manifestOut.getEntries().remove(entry.getKey());
