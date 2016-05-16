@@ -54,7 +54,9 @@ public class JarUtils {
                 }
                 progress.setProgress((int)(currentProgress += entry.getCompressedSize()));
             }
-            manifest = stripManifest(jin.getManifest());
+            if (jin.getManifest() != null) {
+                manifest = stripManifest(jin.getManifest());
+            }
             progress.setProgress((int)fileSize);
         } finally {
             if(jin != null) {
@@ -76,7 +78,9 @@ public class JarUtils {
             jout = new JarOutputStream(new FileOutputStream(file));
             addDirectories(JarFile.MANIFEST_NAME, dirs);
             jout.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
-            cc.getManifest().write(jout);
+            if (cc.getManifest() != null) {
+                cc.getManifest().write(jout);
+            }
             jout.closeEntry();
             progress.setProgress(++classesWritten);
             for(ClassNode classNode : cc.getClasses()) {
