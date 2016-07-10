@@ -62,7 +62,7 @@ public class BON2Gui extends JFrame {
 
         lblForgeVer = new JLabel("Forge Version");
 
-        JComboBox forgeVersions = new JComboBox();
+        JComboBox<String> forgeVersions = new JComboBox<String>();
 
         JButton btnRefreshVers = new JButton("Refresh");
         RefreshListener refresh = new RefreshListener(this, forgeVersions);

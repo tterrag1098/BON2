@@ -13,9 +13,9 @@ import com.github.parker8283.bon2.util.BONUtils;
 
 public class RefreshListener extends MouseAdapter {
     private Component parent;
-    private JComboBox comboBox;
+    private JComboBox<String> comboBox;
 
-    public RefreshListener(Component parent, JComboBox comboBox) {
+    public RefreshListener(Component parent, JComboBox<String> comboBox) {
         this.parent = parent;
         this.comboBox = comboBox;
     }
@@ -30,7 +30,6 @@ public class RefreshListener extends MouseAdapter {
 
         comboBox.removeAllItems();
         for(String version : BONUtils.buildValidMappings()) {
-            //noinspection unchecked
             comboBox.addItem(version);
         }
     }
