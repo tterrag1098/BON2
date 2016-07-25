@@ -9,9 +9,12 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.EmptyBorder;
 
+import com.github.parker8283.bon2.data.MappingVersion;
+import com.github.parker8283.bon2.data.VersionLookup;
 import com.github.parker8283.bon2.gui.BrowseListener;
 import com.github.parker8283.bon2.gui.RefreshListener;
 import com.github.parker8283.bon2.gui.StartListener;
+import com.github.parker8283.bon2.srg.Mapping;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
@@ -62,11 +65,12 @@ public class BON2Gui extends JFrame {
 
         lblForgeVer = new JLabel("Forge Version");
 
-        JComboBox forgeVersions = new JComboBox();
+        JComboBox<MappingVersion> forgeVersions = new JComboBox<MappingVersion>();
 
         JButton btnRefreshVers = new JButton("Refresh");
         RefreshListener refresh = new RefreshListener(this, forgeVersions);
         btnRefreshVers.addMouseListener(refresh);
+        VersionLookup.INSTANCE.refresh(); // make sure we've queried the json, as this will halt the main thread
         refresh.mouseClicked(null); // update the versions initially
         String forgeVer = prefs.get(PREFS_KEY_FORGEVER, "");
         if(!Strings.isNullOrEmpty(forgeVer) && comboBoxToList(forgeVersions).contains(forgeVer)) {

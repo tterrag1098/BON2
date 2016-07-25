@@ -3,6 +3,7 @@ package com.github.parker8283.bon2;
 import java.awt.EventQueue;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.List;
 
 import javax.swing.UIManager;
 
@@ -10,6 +11,7 @@ import com.github.parker8283.bon2.cli.CLIErrorHandler;
 import com.github.parker8283.bon2.cli.CLIProgressListener;
 import com.github.parker8283.bon2.data.BONFiles;
 import com.github.parker8283.bon2.data.IErrorHandler;
+import com.github.parker8283.bon2.data.MappingVersion;
 import com.github.parker8283.bon2.exception.InvalidMappingsVersionException;
 import com.github.parker8283.bon2.util.BONUtils;
 
@@ -60,11 +62,22 @@ public class BON2 {
                 new FileNotFoundException(inputJar).printStackTrace();
                 System.exit(1);
             }
-            if(!BONUtils.buildValidMappings().contains(mappingsVer)) {
-                System.err.println("The provided mappingsVer are invalid. The mappings must exist in your Gradle cache. Format is \"mcVer-forgeVer-mappingVer\". For use with FG2, use \"1.8(.8)-mappingVer\". This is a temporary solution until BON 2.3.");
+            
+            List<MappingVersion> mappings = BONUtils.buildValidMappings();
+            MappingVersion mapping = null;
+            for (MappingVersion m : mappings) {
+                if (m.getVersion().contains(mappingsVer)) {
+                    mapping = m;
+                    break;
+                }
+            }
+            
+            if (mapping == null) {
+                System.err.println("The provided mappingsVer are invalid. The mappings must exist in your Gradle cache. BON2 will match the first version that contains the passed string.");
                 new InvalidMappingsVersionException(mappingsVer).printStackTrace();
                 System.exit(1);
             }
+            
             IErrorHandler errorHandler = new CLIErrorHandler();
 
             log(VERSION);
@@ -74,7 +87,7 @@ public class BON2 {
             log("Gradle User Dir: " + BONFiles.USER_GRADLE_FOLDER);
 
             try {
-                BON2Impl.remap(new File(inputJar), new File(outputJar), mappingsVer, errorHandler, new CLIProgressListener());
+                BON2Impl.remap(new File(inputJar), new File(outputJar), mapping, errorHandler, new CLIProgressListener());
             } catch(Exception e) {
                 logErr(e.getMessage(), e);
                 System.exit(1);

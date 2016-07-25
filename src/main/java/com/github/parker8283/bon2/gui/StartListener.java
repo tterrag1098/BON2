@@ -5,21 +5,26 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 
-import javax.swing.*;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
+import javax.swing.JTextField;
 
 import com.github.parker8283.bon2.BON2Gui;
 import com.github.parker8283.bon2.BON2Impl;
+import com.github.parker8283.bon2.data.MappingVersion;
 
 public class StartListener extends MouseAdapter {
     private Component parent;
     private Thread run = null;
     private JTextField input;
     private JTextField output;
-    private JComboBox forgeVer;
+    private JComboBox<MappingVersion> forgeVer;
     private JLabel progressLabel;
     private JProgressBar progressBar;
 
-    public StartListener(Component parent, JTextField input, JTextField output, JComboBox forgeVer, JLabel progressLabel, JProgressBar progressBar) {
+    public StartListener(Component parent, JTextField input, JTextField output, JComboBox<MappingVersion> forgeVer, JLabel progressLabel, JProgressBar progressBar) {
         this.parent = parent;
         this.input = input;
         this.output = output;
@@ -42,7 +47,7 @@ public class StartListener extends MouseAdapter {
             @Override
             public void run() {
                 try {
-                    BON2Impl.remap(new File(input.getText()), new File(output.getText()), forgeVer.getSelectedItem().toString(), new GUIErrorHandler(parent), new GUIProgressListener(progressLabel, progressBar));
+                    BON2Impl.remap(new File(input.getText()), new File(output.getText()), forgeVer.getItemAt(forgeVer.getSelectedIndex()), new GUIErrorHandler(parent), new GUIProgressListener(progressLabel, progressBar));
                 } catch(Exception ex) {
                     JOptionPane.showMessageDialog(parent, "There was an error.\n" + ex.toString() + "\n" + getFormattedStackTrace(ex.getStackTrace()), BON2Gui.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
                 }

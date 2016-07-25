@@ -7,13 +7,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.github.parker8283.bon2.data.BONFiles;
+import com.github.parker8283.bon2.data.MappingVersion;
+import com.github.parker8283.bon2.data.VersionLookup;
 import com.google.common.collect.Lists;
 
 public class BONUtils {
     private static final Matcher versionMatcher = Pattern.compile("^\\d+\\.\\d+(\\.\\d+)?(_\\w+)?-\\d+\\.\\d+\\.\\d+\\.\\d+(-.+)?").matcher("");
 
-    public static List<String> buildValidMappings() {
-        List<String> versions = Lists.newArrayList();
+    public static List<MappingVersion> buildValidMappings() {
+        List<MappingVersion> versions = Lists.newArrayList();
 
         File[] fg1_versionFolders = BONFiles.MINECRAFTFORGE_FORGE_FOLDER.listFiles();
         if(fg1_versionFolders != null) {
@@ -37,18 +39,18 @@ public class BONUtils {
             }
 
             for(File file : fg1_versions) {
-                if(new File(file, "srgs").exists()) {
-                    versions.add(file.getName() + "-shipped");
+                File srgs = new File(file, "srgs");
+                if(srgs.exists()) {
+                    versions.add(new MappingVersion(file.getName() + "-shipped", srgs));
                 }
                 if(hasAdditionalMappings(file)) {
-                    List<String> additionalMappings = Lists.newArrayList();
-                    additionalMappings = addFG1Mappings(file, "snapshot", additionalMappings);
-                    additionalMappings = addFG1Mappings(file, "snapshot_nodoc", additionalMappings);
-                    additionalMappings = addFG1Mappings(file, "stable", additionalMappings);
-                    additionalMappings = addFG1Mappings(file, "stable_nodoc", additionalMappings);
-                    for(String mapping : additionalMappings) {
-                        versions.add(file.getName() + "-" + mapping);
-                    }
+                    List<MappingVersion> additionalMappings = Lists.newArrayList();
+                    addFG1Mappings(file, "snapshot", additionalMappings);
+                    addFG1Mappings(file, "snapshot_nodoc", additionalMappings);
+                    addFG1Mappings(file, "stable", additionalMappings);
+                    addFG1Mappings(file, "stable_nodoc", additionalMappings);
+                    versions.addAll(additionalMappings);
+                    //file.getName() + "-" + mapping);
                 }
             }
         }
@@ -68,41 +70,27 @@ public class BONUtils {
             }
 
             for(File file : fg2_versions) {
-                versions.add("1.8(.8)-" + file.getParentFile().getName().substring(4) + "_" + file.getName()); //TODO Find out mc version for the mappings somehow
+                String version = VersionLookup.INSTANCE.getVersionFor(file.getName()) + "-" + file.getParentFile().getName().substring(4) + "_" + file.getName();
+                File srgs = new File(file, "srgs");
+                versions.add(new MappingVersion(version, srgs));
             }
         }
 
+        versions.sort(null);
         return versions;
-    }
-
-    public static File getSrgsFolder(String mappingsVer) {
-        if(mappingsVer.startsWith("1.8(.8)-")) {
-            String mappingChan = mappingsVer.substring(mappingsVer.indexOf('-') + 1, mappingsVer.lastIndexOf('_'));
-            String mappingVer = mappingsVer.substring(mappingsVer.lastIndexOf('_') + 1);
-            return new File(BONFiles.OCEANLABS_MCP_FOLDER, "mcp_" + mappingChan + File.separator + mappingVer + File.separator + "srgs");
-        } else {
-            if(mappingsVer.endsWith("shipped")) {
-                return new File(BONFiles.MINECRAFTFORGE_FORGE_FOLDER, mappingsVer.replace("-shipped", "") + File.separator + "srgs");
-            } else {
-                String forgeVer = mappingsVer.substring(0, mappingsVer.lastIndexOf('-'));
-                String mappingChan = mappingsVer.substring(mappingsVer.lastIndexOf('-') + 1, mappingsVer.lastIndexOf('_'));
-                String mappingVer = mappingsVer.substring(mappingsVer.lastIndexOf('_') + 1);
-                return new File(BONFiles.MINECRAFTFORGE_FORGE_FOLDER, forgeVer + File.separator + mappingChan + File.separator + mappingVer + File.separator + "srgs");
-            }
-        }
     }
 
     private static boolean hasAdditionalMappings(File file) {
         return new File(file, "snapshot").exists() || new File(file, "snapshot_nodoc").exists() || new File(file, "stable").exists() || new File(file, "stable_nodoc").exists();
     }
 
-    private static List<String> addFG1Mappings(File rootDir, String channel, List<String> list) {
+    private static List<MappingVersion> addFG1Mappings(File rootDir, String channel, List<MappingVersion> additionalMappings) {
         File mappingDir = new File(rootDir, channel);
         if(mappingDir.exists()) {
             for(String subdir : mappingDir.list()) {
-                list.add(channel + "_" + subdir);
+                additionalMappings.add(new MappingVersion(rootDir.getName() + "-" + channel + "_" + subdir, new File(mappingDir, subdir + File.separator + "srgs")));
             }
         }
-        return list;
+        return additionalMappings;
     }
 }

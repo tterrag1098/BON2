@@ -5,9 +5,9 @@ import java.io.IOException;
 
 import com.github.parker8283.bon2.data.IErrorHandler;
 import com.github.parker8283.bon2.data.IProgressListener;
+import com.github.parker8283.bon2.data.MappingVersion;
 import com.github.parker8283.bon2.srg.ClassCollection;
 import com.github.parker8283.bon2.srg.Repo;
-import com.github.parker8283.bon2.util.BONUtils;
 import com.github.parker8283.bon2.util.JarUtils;
 import com.github.parker8283.bon2.util.Remapper;
 
@@ -21,8 +21,8 @@ public class BON2Impl {
      * @param errorHandler An IErrorHandler impl to handle when an error is encountered in the remapping process.
      * @param progressListener An IProgressListener impl to handle listening to the progress of the remapping.
      */
-    public static void remap(File inputJar, File outputJar, String mappings, IErrorHandler errorHandler, IProgressListener progressListener) throws IOException {
-        File srgsFolder = BONUtils.getSrgsFolder(mappings);
+    public static void remap(File inputJar, File outputJar, MappingVersion mappings, IErrorHandler errorHandler, IProgressListener progressListener) throws IOException {
+        File srgsFolder = mappings.getSrgs();
         Repo.loadMappings(srgsFolder, progressListener);
         ClassCollection inputCC = JarUtils.readFromJar(inputJar, errorHandler, progressListener);
         ClassCollection outputCC = Remapper.remap(inputCC, progressListener);

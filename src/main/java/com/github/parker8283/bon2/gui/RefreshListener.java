@@ -9,13 +9,15 @@ import javax.swing.JOptionPane;
 
 import com.github.parker8283.bon2.BON2Gui;
 import com.github.parker8283.bon2.data.BONFiles;
+import com.github.parker8283.bon2.data.MappingVersion;
+import com.github.parker8283.bon2.srg.Mapping;
 import com.github.parker8283.bon2.util.BONUtils;
 
 public class RefreshListener extends MouseAdapter {
     private Component parent;
-    private JComboBox comboBox;
+    private JComboBox<MappingVersion> comboBox;
 
-    public RefreshListener(Component parent, JComboBox comboBox) {
+    public RefreshListener(Component parent, JComboBox<MappingVersion> comboBox) {
         this.parent = parent;
         this.comboBox = comboBox;
     }
@@ -29,7 +31,7 @@ public class RefreshListener extends MouseAdapter {
         }
 
         comboBox.removeAllItems();
-        for(String version : BONUtils.buildValidMappings()) {
+        for(MappingVersion version : BONUtils.buildValidMappings()) {
             //noinspection unchecked
             comboBox.addItem(version);
         }
