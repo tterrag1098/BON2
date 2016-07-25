@@ -71,6 +71,6 @@ public class MappingVersion implements Comparable<MappingVersion> {
             }
         }
         
-        return 0;
+        return v1.compareTo(v2);
     }
 }
