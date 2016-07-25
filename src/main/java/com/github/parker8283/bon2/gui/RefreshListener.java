@@ -10,7 +10,6 @@ import javax.swing.JOptionPane;
 import com.github.parker8283.bon2.BON2Gui;
 import com.github.parker8283.bon2.data.BONFiles;
 import com.github.parker8283.bon2.data.MappingVersion;
-import com.github.parker8283.bon2.srg.Mapping;
 import com.github.parker8283.bon2.util.BONUtils;
 
 public class RefreshListener extends MouseAdapter {
@@ -30,10 +29,12 @@ public class RefreshListener extends MouseAdapter {
             JOptionPane.showMessageDialog(parent, "The user .gradle isn't a folder. Delete it and try again.", BON2Gui.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
         }
 
+        Object sel = comboBox.getSelectedItem();
         comboBox.removeAllItems();
         for(MappingVersion version : BONUtils.buildValidMappings()) {
             //noinspection unchecked
             comboBox.addItem(version);
         }
+        comboBox.setSelectedItem(sel); // Reference equality not required
     }
 }
