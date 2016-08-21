@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 import com.github.parker8283.bon2.cli.CLIErrorHandler;

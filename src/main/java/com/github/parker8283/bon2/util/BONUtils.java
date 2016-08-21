@@ -57,27 +57,32 @@ public class BONUtils {
 
         File[] fg2_mappingsFolders = BONFiles.OCEANLABS_MCP_FOLDER.listFiles();
         if(fg2_mappingsFolders != null) {
-            List<File> fg2_versions = Lists.newArrayList();
             for(File file : fg2_mappingsFolders) {
                 String name = file.getName();
                 if(name.startsWith("mcp_s")) {
                     for(File file1 : file.listFiles()) {
                         if(Arrays.asList(file1.list()).contains("srgs")) {
-                            fg2_versions.add(file1);
+                            versions.add(new MappingVersion(getFullVersion(file1), new File(file1, "srgs")));
+                        } else {
+                            // Apparently there are version specific folders inside the mappings folder now
+                            // So we'll reverse lookup the MC version and use that folder, if it exists
+                            // Hopefully these always match up (they should)
+                            String mcver = VersionLookup.INSTANCE.getVersionFor(file1.getName());
+                            if (Arrays.asList(file1.list()).contains(mcver)) {
+                                versions.add(new MappingVersion(getFullVersion(file1), new File(file1, mcver + File.separator + "srgs")));
+                            }
                         }
                     }
                 }
-            }
-
-            for(File file : fg2_versions) {
-                String version = VersionLookup.INSTANCE.getVersionFor(file.getName()) + "-" + file.getParentFile().getName().substring(4) + "_" + file.getName();
-                File srgs = new File(file, "srgs");
-                versions.add(new MappingVersion(version, srgs));
             }
         }
 
         versions.sort(null);
         return versions;
+    }
+    
+    private static String getFullVersion(File mappingsfolder) {
+        return VersionLookup.INSTANCE.getVersionFor(mappingsfolder.getName()) + "-" + mappingsfolder.getParentFile().getName().substring(4) + "_" + mappingsfolder.getName();
     }
 
     private static boolean hasAdditionalMappings(File file) {
