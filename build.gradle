@@ -3,7 +3,7 @@ apply plugin: 'maven'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 
-version = "2.3.0-beta1"
+version = "2.3.0-beta2"
 group = "com.github.parker8283"
 archivesBaseName = "BON"
 
