@@ -24,7 +24,7 @@ public class RefreshListener extends MouseAdapter {
     @Override
     public void mouseClicked(MouseEvent e) {
         if(!BONFiles.USER_GRADLE_FOLDER.exists()) {
-            JOptionPane.showMessageDialog(parent, "No user .gradle folder found. You must run ForgeGradle at least once in order to use this tool.\n\nNOTE: If your GRADLE_USER_HOME is NOT in the default place, you can specify its location from the CLI version of BON2. Run BON2 with \"--help\" for info on doing that. This will be fixed for the GUI version in BON 2.3.", BON2Gui.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(parent, "No user .gradle folder found. You must run ForgeGradle at least once in order to use this tool.", BON2Gui.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
         } else if(!BONFiles.USER_GRADLE_FOLDER.isDirectory()) {
             JOptionPane.showMessageDialog(parent, "The user .gradle isn't a folder. Delete it and try again.", BON2Gui.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
         }

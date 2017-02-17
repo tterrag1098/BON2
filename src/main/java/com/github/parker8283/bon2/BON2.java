@@ -38,7 +38,6 @@ public class BON2 {
         parser.accepts("inputJar", "The jar file to deobfuscate").withRequiredArg().required();
         parser.accepts("outputJar", "The location and name of the output jar. Defaults to same dir and appends \"-deobf\"").withRequiredArg();
         parser.accepts("mappingsVer", "The version of the mappings to use. Must exist in Gradle cache. Format is \"mcVer-forgeVer-mappingVer\". For use with FG2, use \"1.8(.8)-mappingVer\". This is a temporary solution until BON 2.3.").withRequiredArg().required();
-        parser.accepts("userGradle", "If your user gradle folder is not in the default spot, specify its location here.").withRequiredArg();
 
         try {
             OptionSet options = parser.parse(args);
@@ -55,9 +54,7 @@ public class BON2 {
             String inputJar = (String)options.valueOf("inputJar");
             String outputJar = options.has("outputJar") ? (String)options.valueOf("outputJar") : inputJar.replace(".jar", "-deobf.jar");
             String mappingsVer = (String)options.valueOf("mappingsVer");
-            if(options.has("userGradle")) {
-                BONFiles.setUserHome(new File((String)options.valueOf("userGradle")));
-            }
+
             if(!new File(inputJar).exists()) {
                 System.err.println("The provided inputJar does not exist");
                 new FileNotFoundException(inputJar).printStackTrace();
