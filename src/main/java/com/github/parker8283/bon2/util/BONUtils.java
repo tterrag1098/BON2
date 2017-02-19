@@ -11,6 +11,7 @@ import com.github.parker8283.bon2.data.VersionLookup;
 import com.google.common.collect.Lists;
 
 public class BONUtils {
+
     private static final Matcher versionMatcher = Pattern.compile("^\\d+\\.\\d+(\\.\\d+)?(_\\w+)?-\\d+\\.\\d+\\.\\d+\\.\\d+(-.+)?").matcher("");
 
     public static List<MappingVersion> buildValidMappings() {
@@ -47,19 +48,5 @@ public class BONUtils {
     
     private static String getFullVersion(File mappingsfolder) {
         return VersionLookup.INSTANCE.getVersionFor(mappingsfolder.getName()) + "-" + mappingsfolder.getParentFile().getName().substring(4) + "_" + mappingsfolder.getName();
-    }
-
-    private static boolean hasAdditionalMappings(File file) {
-        return new File(file, "snapshot").exists() || new File(file, "snapshot_nodoc").exists() || new File(file, "stable").exists() || new File(file, "stable_nodoc").exists();
-    }
-
-    private static List<MappingVersion> addFG1Mappings(File rootDir, String channel, List<MappingVersion> additionalMappings) {
-        File mappingDir = new File(rootDir, channel);
-        if(mappingDir.exists()) {
-            for(String subdir : mappingDir.list()) {
-                additionalMappings.add(new MappingVersion(rootDir.getName() + "-" + channel + "_" + subdir, new File(mappingDir, subdir + File.separator + "srgs")));
-            }
-        }
-        return additionalMappings;
     }
 }
