@@ -14,15 +14,18 @@ import com.github.parker8283.bon2.data.VersionLookup;
 import com.github.parker8283.bon2.gui.BrowseListener;
 import com.github.parker8283.bon2.gui.RefreshListener;
 import com.github.parker8283.bon2.gui.StartListener;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 public class BON2Gui extends JFrame {
 
     public static final String ERROR_DIALOG_TITLE = "Error - BON2";
     public static final String PREFS_KEY_FORGEVER = "forgeVer";
-    public final Preferences prefs = Preferences.userNodeForPackage(BON2Gui.class);
+    public static final String PREFS_KEY_OPEN_LOC = "openLoc";
+    public static final String PREFS_KEY_SAVE_LOC = "closeLoc";
+
     private static final long serialVersionUID = -619289399889088924L;
+
+    public final Preferences prefs = Preferences.userNodeForPackage(BON2Gui.class);
 
     private JPanel contentPane;
     private JTextField inputJarLoc;
@@ -76,6 +79,9 @@ public class BON2Gui extends JFrame {
                 forgeVersions.setSelectedItem(m);
             }
         }
+        
+        // Add this after previously saved value is set
+        forgeVersions.addActionListener(e -> prefs.put(BON2Gui.PREFS_KEY_FORGEVER, forgeVersions.getSelectedItem().toString()));
 
         masterProgress = new JProgressBar();
 

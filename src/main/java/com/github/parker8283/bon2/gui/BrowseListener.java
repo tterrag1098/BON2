@@ -1,6 +1,5 @@
 package com.github.parker8283.bon2.gui;
 
-import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -14,13 +13,12 @@ import javax.swing.filechooser.FileFilter;
 import com.github.parker8283.bon2.BON2Gui;
 
 public class BrowseListener extends MouseAdapter {
-    private Component parent;
+    private BON2Gui parent;
     private boolean isOpen;
     private JTextField field;
     private JFileChooser fileChooser;
 
-    public BrowseListener(Component parent, boolean isOpen, JTextField field) {
-        assert parent instanceof BON2Gui : "Parent component must be an instance of BON2Gui";
+    public BrowseListener(BON2Gui parent, boolean isOpen, JTextField field) {
         this.parent = parent;
         this.isOpen = isOpen;
         this.field = field;
@@ -39,7 +37,9 @@ public class BrowseListener extends MouseAdapter {
                 return "JAR mods only";
             }
         });
-        File currentDir = Paths.get("").toAbsolutePath().toFile();
+        String key = isOpen ? BON2Gui.PREFS_KEY_OPEN_LOC : BON2Gui.PREFS_KEY_SAVE_LOC;
+        String savedDir = parent.prefs.get(key, Paths.get("").toAbsolutePath().toString());
+        File currentDir = new File(savedDir);
         while (!currentDir.isDirectory()) {
             currentDir = currentDir.getParentFile();
         }
@@ -56,18 +56,21 @@ public class BrowseListener extends MouseAdapter {
         }
         if(returnState == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
+            String path = null; 
             try {
-                field.setText(file.getCanonicalPath());
-            } catch(IOException ex) {
-                field.setText(file.getAbsolutePath());
+                path = file.getCanonicalPath();
+            } catch (IOException ex) {
+                path = file.getAbsolutePath();
             }
-            if(isOpen) {
-                try {
-                    ((BON2Gui)parent).getOutputField().setText(file.getCanonicalPath().replace(".jar", "-deobf.jar"));
-                } catch(IOException ex) {
-                    ((BON2Gui)parent).getOutputField().setText(file.getAbsolutePath().replace(".jar", "-deobf.jar"));
-                }
+            
+            field.setText(path);
+            
+            String parentFolder = file.getParentFile().getAbsolutePath();
+            if (isOpen) {
+                ((BON2Gui) parent).getOutputField().setText(path.replace(".jar", "-deobf.jar"));
+                parent.prefs.put(BON2Gui.PREFS_KEY_OPEN_LOC, parentFolder);
             }
+            parent.prefs.put(BON2Gui.PREFS_KEY_SAVE_LOC, parentFolder);
         }
     }
 }

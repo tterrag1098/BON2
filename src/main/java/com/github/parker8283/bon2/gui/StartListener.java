@@ -36,7 +36,6 @@ public class StartListener extends MouseAdapter {
     @Override
     public void mouseClicked(MouseEvent e) {
         assert parent instanceof BON2Gui : "Parent component must be an instance of BON2Gui";
-        ((BON2Gui)parent).prefs.put(BON2Gui.PREFS_KEY_FORGEVER, forgeVer.getSelectedItem().toString());
         if(!input.getText().endsWith(".jar") || !output.getText().endsWith(".jar")) {
             JOptionPane.showMessageDialog(parent, "Nice try, but only JAR mods work.", BON2Gui.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
         }
