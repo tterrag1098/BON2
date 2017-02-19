@@ -1,7 +1,6 @@
 package com.github.parker8283.bon2.util;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,38 +18,13 @@ public class BONUtils {
 
         File[] fg1_versionFolders = BONFiles.MINECRAFTFORGE_FORGE_FOLDER.listFiles();
         if(fg1_versionFolders != null) {
-            List<File> fg1_versions = Lists.newArrayList();
             for(File file : fg1_versionFolders) {
                 String name = file.getName();
                 if(!name.startsWith("1.6") && versionMatcher.reset(name).matches()) {
-                    int mcMinor = Integer.parseInt(name.charAt(2) + "");
-                    if(mcMinor == 7) {
-                        fg1_versions.add(file);
-                    } else if(mcMinor == 8) {
-                        String work = name;
-                        if(name.lastIndexOf('-') != name.indexOf('-')) {
-                            work = name.substring(0, name.lastIndexOf('-'));
-                        }
-                        if(!(Integer.parseInt(work.substring(work.lastIndexOf('.') + 1)) >= 1503)) {
-                            fg1_versions.add(file);
-                        }
+                    File conf = new File(file, "unpacked" + File.separator + "conf");
+                    if (conf.exists() && conf.isDirectory()) {
+                        versions.add(new MappingVersion(name, conf));
                     }
-                }
-            }
-
-            for(File file : fg1_versions) {
-                File srgs = new File(file, "srgs");
-                if(srgs.exists()) {
-                    versions.add(new MappingVersion(file.getName() + "-shipped", srgs));
-                }
-                if(hasAdditionalMappings(file)) {
-                    List<MappingVersion> additionalMappings = Lists.newArrayList();
-                    addFG1Mappings(file, "snapshot", additionalMappings);
-                    addFG1Mappings(file, "snapshot_nodoc", additionalMappings);
-                    addFG1Mappings(file, "stable", additionalMappings);
-                    addFG1Mappings(file, "stable_nodoc", additionalMappings);
-                    versions.addAll(additionalMappings);
-                    //file.getName() + "-" + mapping);
                 }
             }
         }
@@ -61,17 +35,7 @@ public class BONUtils {
                 String name = file.getName();
                 if(name.startsWith("mcp_s")) {
                     for(File file1 : file.listFiles()) {
-                        if(Arrays.asList(file1.list()).contains("srgs")) {
-                            versions.add(new MappingVersion(getFullVersion(file1), new File(file1, "srgs")));
-                        } else {
-                            // Apparently there are version specific folders inside the mappings folder now
-                            // So we'll reverse lookup the MC version and use that folder, if it exists
-                            // Hopefully these always match up (they should)
-                            String mcver = VersionLookup.INSTANCE.getVersionFor(file1.getName());
-                            if (Arrays.asList(file1.list()).contains(mcver)) {
-                                versions.add(new MappingVersion(getFullVersion(file1), new File(file1, mcver + File.separator + "srgs")));
-                            }
-                        }
+                        versions.add(new MappingVersion(getFullVersion(file1), file1));
                     }
                 }
             }
