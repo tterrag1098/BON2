@@ -67,7 +67,7 @@ public class BrowseListener extends MouseAdapter {
             
             String parentFolder = file.getParentFile().getAbsolutePath();
             if (isOpen) {
-                ((BON2Gui) parent).getOutputField().setText(path.replace(".jar", "-deobf.jar"));
+                parent.getOutputField().setText(path.replace(".jar", "-deobf.jar"));
                 parent.prefs.put(BON2Gui.PREFS_KEY_OPEN_LOC, parentFolder);
             }
             parent.prefs.put(BON2Gui.PREFS_KEY_SAVE_LOC, parentFolder);

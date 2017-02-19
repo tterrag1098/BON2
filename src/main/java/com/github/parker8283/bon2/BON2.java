@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
-import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 import com.github.parker8283.bon2.cli.CLIErrorHandler;
@@ -109,6 +108,7 @@ public class BON2 {
         log(VERSION);
         log("No arguments passed. Launching gui...");
         EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 try {
                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());

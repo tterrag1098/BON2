@@ -1,6 +1,5 @@
 package com.github.parker8283.bon2.gui;
 
-import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -16,7 +15,7 @@ import com.github.parker8283.bon2.BON2Impl;
 import com.github.parker8283.bon2.data.MappingVersion;
 
 public class StartListener extends MouseAdapter {
-    private Component parent;
+    private BON2Gui parent;
     private Thread run = null;
     private JTextField input;
     private JTextField output;
@@ -24,7 +23,7 @@ public class StartListener extends MouseAdapter {
     private JLabel progressLabel;
     private JProgressBar progressBar;
 
-    public StartListener(Component parent, JTextField input, JTextField output, JComboBox<MappingVersion> forgeVer, JLabel progressLabel, JProgressBar progressBar) {
+    public StartListener(BON2Gui parent, JTextField input, JTextField output, JComboBox<MappingVersion> forgeVer, JLabel progressLabel, JProgressBar progressBar) {
         this.parent = parent;
         this.input = input;
         this.output = output;
@@ -35,7 +34,6 @@ public class StartListener extends MouseAdapter {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        assert parent instanceof BON2Gui : "Parent component must be an instance of BON2Gui";
         if(!input.getText().endsWith(".jar") || !output.getText().endsWith(".jar")) {
             JOptionPane.showMessageDialog(parent, "Nice try, but only JAR mods work.", BON2Gui.ERROR_DIALOG_TITLE, JOptionPane.ERROR_MESSAGE);
         }
