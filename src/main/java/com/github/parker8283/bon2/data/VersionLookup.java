@@ -52,7 +52,7 @@ public enum VersionLookup {
                 return s;
             }
         }
-        return "1.banana";
+        return "unknown";
     }
 
     @SuppressWarnings("serial")

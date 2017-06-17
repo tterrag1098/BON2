@@ -52,6 +52,17 @@ public class MappingVersion implements Comparable<MappingVersion> {
     public int compareTo(MappingVersion o) {
         String v1 = getVersion();
         String v2 = o.getVersion();
+
+        if (v1.equals(v2)) {
+            return 0;
+        }
+
+        if ("unknown".equals("v1")) {
+            return -1;
+        } else if ("unknown".equals("v2")) {
+            return 1;
+        }
+
         v1 = v1.substring(0, v1.indexOf('-'));
         v2 = v2.substring(0, v2.indexOf('-'));
         
