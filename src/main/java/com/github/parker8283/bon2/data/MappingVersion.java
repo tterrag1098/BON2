@@ -57,9 +57,9 @@ public class MappingVersion implements Comparable<MappingVersion> {
             return 0;
         }
 
-        if ("unknown".equals("v1")) {
+        if ("unknown".equals(v1)) {
             return -1;
-        } else if ("unknown".equals("v2")) {
+        } else if ("unknown".equals(v2)) {
             return 1;
         }
 
