@@ -1,6 +1,7 @@
 package com.github.parker8283.bon2.util;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,7 +36,7 @@ public class BONUtils {
             for(File file : fg2_mappingsFolders) {
                 String name = file.getName();
                 if(name.startsWith("mcp_s")) {
-                    for(File file1 : file.listFiles()) {
+                    for(File file1 : file.listFiles(File::isDirectory)) {
                         versions.add(new MappingVersion(getFullVersion(file1), file1));
                     }
                 }
