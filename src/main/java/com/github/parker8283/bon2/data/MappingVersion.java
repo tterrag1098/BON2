@@ -57,14 +57,14 @@ public class MappingVersion implements Comparable<MappingVersion> {
             return 0;
         }
 
+        v1 = v1.substring(0, v1.indexOf('-'));
+        v2 = v2.substring(0, v2.indexOf('-'));
+
         if ("unknown".equals(v1)) {
             return -1;
         } else if ("unknown".equals(v2)) {
             return 1;
         }
-
-        v1 = v1.substring(0, v1.indexOf('-'));
-        v2 = v2.substring(0, v2.indexOf('-'));
         
         String[] subv1 = v1.split("\\.");
         String[] subv2 = v2.split("\\.");
@@ -85,3 +85,4 @@ public class MappingVersion implements Comparable<MappingVersion> {
         return v1.compareTo(v2);
     }
 }
+
