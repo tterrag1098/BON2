@@ -12,6 +12,7 @@ import com.github.parker8283.bon2.cli.CLIProgressListener;
 import com.github.parker8283.bon2.data.BONFiles;
 import com.github.parker8283.bon2.data.IErrorHandler;
 import com.github.parker8283.bon2.data.MappingVersion;
+import com.github.parker8283.bon2.data.VersionLookup;
 import com.github.parker8283.bon2.exception.InvalidMappingsVersionException;
 import com.github.parker8283.bon2.util.BONUtils;
 
@@ -59,6 +60,8 @@ public class BON2 {
                 new FileNotFoundException(inputJar).printStackTrace();
                 System.exit(1);
             }
+            
+            VersionLookup.INSTANCE.refresh();
             
             List<MappingVersion> mappings = BONUtils.buildValidMappings();
             MappingVersion mapping = null;
