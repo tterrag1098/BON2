@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.channels.ClosedByInterruptException;
 import java.nio.file.Files;
 import java.text.DateFormatSymbols;
 import java.util.*;
@@ -127,14 +128,14 @@ public class GuiDownloadNew extends JFrame {
                     Files.copy(in, temp.toPath());
                     Thread.sleep(1);
                     BONUtils.extractZip(temp);
-                    Thread.sleep(1);
                     temp.delete();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
+                    Thread.sleep((finished + 1) % 10 == 0 ? 2000L : 1); // plz no ddos
+                } catch (InterruptedException | ClosedByInterruptException e) {
                     progress.start(0, "Canceled");
                     progress.setProgress(0);
                     return;
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
                 progress.setProgress(++finished);
             }
