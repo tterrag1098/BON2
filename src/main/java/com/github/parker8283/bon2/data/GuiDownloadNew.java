@@ -45,7 +45,7 @@ public class GuiDownloadNew extends JFrame {
         
         @Override
         public String toString() {
-            return (stable ? "stable" : "snapshot") + "-" + version;
+            return (stable ? "stable" : "snapshot") + "_" + version;
         }
     }
     
