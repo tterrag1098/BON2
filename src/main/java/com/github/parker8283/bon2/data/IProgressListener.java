@@ -9,4 +9,6 @@ public interface IProgressListener {
     void setProgress(int value);
 
     void setMax(int max);
+    
+    void setLabel(String label);
 }

@@ -23,4 +23,9 @@ public class CLIProgressListener implements IProgressListener {
     public void setMax(int max) {
         //NO-OP
     }
+    
+    @Override
+    public void setLabel(String label) {
+        System.out.println(label);
+    }
 }

@@ -3,21 +3,38 @@ package com.github.parker8283.bon2.data;
 import java.util.Map;
 import java.util.Set;
 
+import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
 public class VersionJson {
     
     public static class MappingsJson {
         
-        private TIntHashSet snapshot;
-        private TIntHashSet stable;
+        private int[] snapshot;
+        private int[] stable;
+        
+        private transient TIntSet snapshotSet, stableSet;
+        
+        private TIntSet getSnapshotSet() {
+            if (snapshotSet == null) {
+                snapshotSet = new TIntHashSet(snapshot);
+            }
+            return snapshotSet;
+        }
+        
+        private TIntSet getStableSet() {
+            if (stableSet == null) {
+                stableSet = new TIntHashSet(stable);
+            }
+            return stableSet;
+        }
         
         public boolean hasSnapshot(String version) {
             return hasSnapshot(Integer.valueOf(version));
         }
         
         public boolean hasSnapshot(int version) {
-            return snapshot.contains(version); 
+            return getSnapshotSet().contains(version); 
         }
         
         public boolean hasStable(String version) {
@@ -25,7 +42,15 @@ public class VersionJson {
         }
         
         public boolean hasStable(int version) {
-            return stable.contains(version);
+            return getStableSet().contains(version);
+        }
+        
+        public int[] getSnapshots() {
+            return snapshot;
+        }
+        
+        public int[] getStables() {
+            return stable;
         }
     }
     

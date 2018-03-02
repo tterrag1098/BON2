@@ -9,6 +9,7 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.EmptyBorder;
 
+import com.github.parker8283.bon2.data.GuiDownloadNew;
 import com.github.parker8283.bon2.data.MappingVersion;
 import com.github.parker8283.bon2.data.VersionLookup;
 import com.github.parker8283.bon2.gui.BrowseListener;
@@ -81,7 +82,21 @@ public class BON2Gui extends JFrame {
         }
         
         // Add this after previously saved value is set
-        forgeVersions.addActionListener(e -> prefs.put(BON2Gui.PREFS_KEY_FORGEVER, forgeVersions.getSelectedItem().toString()));
+        forgeVersions.addActionListener(e -> {
+            Object selected = forgeVersions.getSelectedItem();
+            if (selected == null) {
+                prefs.remove(BON2Gui.PREFS_KEY_FORGEVER);
+            } else {
+                prefs.put(BON2Gui.PREFS_KEY_FORGEVER, selected.toString());
+            }
+        });
+        
+        JButton buttonDownload = new JButton("Download");
+        buttonDownload.addActionListener(e -> {
+            GuiDownloadNew gui = new GuiDownloadNew(refresh);
+            gui.setLocation(getLocation());
+            gui.setVisible(true);
+        });
 
         masterProgress = new JProgressBar();
 
@@ -91,47 +106,63 @@ public class BON2Gui extends JFrame {
         btnStart.addMouseListener(new StartListener(this, inputJarLoc, outputJarLoc, forgeVersions, lblProgressText, masterProgress));
 
         lblProgressText.setHorizontalAlignment(SwingConstants.CENTER);
-        GroupLayout gl_contentPane = new GroupLayout(contentPane);
-        gl_contentPane.setHorizontalGroup(gl_contentPane
-                .createParallelGroup(Alignment.LEADING)
-                .addGroup(Alignment.TRAILING, gl_contentPane.createSequentialGroup().addContainerGap()
-                        .addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
-                                .addComponent(lblProgressText, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE)
-                                .addComponent(btnStart, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE)
-                                .addGroup(Alignment.LEADING, gl_contentPane.createSequentialGroup()
-                                        .addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-                                                .addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING, false)
-                                                        .addComponent(lblForgeVer, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                        .addComponent(lblInput, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                        .addComponent(lblOutput, GroupLayout.DEFAULT_SIZE, 81, Short.MAX_VALUE)))
-                                        .addPreferredGap(ComponentPlacement.RELATED).addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-                                                .addComponent(inputJarLoc, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 289, Short.MAX_VALUE)
-                                                .addComponent(outputJarLoc, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 289, Short.MAX_VALUE)
-                                                .addComponent(forgeVersions, 0, 289, Short.MAX_VALUE)).addPreferredGap(ComponentPlacement.RELATED)
-                                        .addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING, false)
-                                                .addComponent(btnRefreshVers, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                .addComponent(btnBrouseOutput, GroupLayout.DEFAULT_SIZE, 91, Short.MAX_VALUE)
-                                                .addComponent(btnBrouseInput, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                                .addComponent(masterProgress, GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE)).addContainerGap()));
 
-        gl_contentPane.setVerticalGroup(gl_contentPane
-                .createParallelGroup(Alignment.LEADING)
-                .addGroup(gl_contentPane.createSequentialGroup().addContainerGap()
-                        .addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
-                                .addComponent(inputJarLoc, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(btnBrouseInput).addComponent(lblInput)).addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE).addComponent(lblOutput)
-                                .addComponent(outputJarLoc, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(btnBrouseOutput)).addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE).addComponent(lblForgeVer)
-                                .addComponent(forgeVersions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(btnRefreshVers)).addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(btnStart)
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(masterProgress, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addGap(7)
-                        .addComponent(lblProgressText)
-                        .addContainerGap(7, Short.MAX_VALUE)));
+        GroupLayout gl_contentPane = new GroupLayout(contentPane);
+        gl_contentPane.setHorizontalGroup(
+            gl_contentPane.createParallelGroup(Alignment.TRAILING)
+                .addGroup(gl_contentPane.createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+                        .addComponent(lblProgressText, GroupLayout.DEFAULT_SIZE, 531, Short.MAX_VALUE)
+                        .addComponent(btnStart, GroupLayout.DEFAULT_SIZE, 531, Short.MAX_VALUE)
+                        .addGroup(gl_contentPane.createSequentialGroup()
+                            .addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING, false)
+                                .addComponent(lblForgeVer, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(lblInput, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(lblOutput, GroupLayout.DEFAULT_SIZE, 81, Short.MAX_VALUE))
+                            .addPreferredGap(ComponentPlacement.RELATED)
+                            .addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+                                .addComponent(inputJarLoc, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
+                                .addComponent(outputJarLoc, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
+                                .addGroup(Alignment.TRAILING, gl_contentPane.createSequentialGroup()
+                                    .addComponent(forgeVersions, 0, 225, Short.MAX_VALUE)
+                                    .addPreferredGap(ComponentPlacement.RELATED)
+                                    .addComponent(buttonDownload, GroupLayout.PREFERRED_SIZE, 91, GroupLayout.PREFERRED_SIZE)))
+                            .addPreferredGap(ComponentPlacement.RELATED)
+                            .addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING, false)
+                                .addComponent(btnRefreshVers, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnBrouseOutput, GroupLayout.DEFAULT_SIZE, 91, Short.MAX_VALUE)
+                                .addComponent(btnBrouseInput, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addComponent(masterProgress, GroupLayout.DEFAULT_SIZE, 531, Short.MAX_VALUE))
+                    .addContainerGap())
+        );
+        gl_contentPane.setVerticalGroup(
+            gl_contentPane.createParallelGroup(Alignment.LEADING)
+                .addGroup(gl_contentPane.createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+                        .addComponent(inputJarLoc, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnBrouseInput)
+                        .addComponent(lblInput))
+                    .addPreferredGap(ComponentPlacement.RELATED)
+                    .addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+                        .addComponent(lblOutput)
+                        .addComponent(outputJarLoc, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnBrouseOutput))
+                    .addPreferredGap(ComponentPlacement.RELATED)
+                    .addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+                        .addComponent(lblForgeVer)
+                        .addComponent(btnRefreshVers)
+                        .addComponent(buttonDownload)
+                        .addComponent(forgeVersions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                    .addPreferredGap(ComponentPlacement.RELATED)
+                    .addComponent(btnStart)
+                    .addPreferredGap(ComponentPlacement.RELATED)
+                    .addComponent(masterProgress, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addGap(7)
+                    .addComponent(lblProgressText)
+                    .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
         
         contentPane.setLayout(gl_contentPane);
     }

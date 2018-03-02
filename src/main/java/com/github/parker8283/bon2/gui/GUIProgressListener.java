@@ -62,4 +62,9 @@ public class GUIProgressListener implements IProgressListener {
             }
         });
     }
+    
+    @Override
+    public void setLabel(String label) {
+        SwingUtilities.invokeLater(() -> progressLabel.setText(label));
+    }
 }
