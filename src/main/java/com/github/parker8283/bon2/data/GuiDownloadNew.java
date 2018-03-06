@@ -135,7 +135,11 @@ public class GuiDownloadNew extends JFrame {
                     progress.setProgress(0);
                     return;
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(GuiDownloadNew.this, e, "Error downloading mappings", JOptionPane.ERROR_MESSAGE);
+                    urls.clear();
+                    progress.start(0, "Error");
+                    progress.setProgress(0);
+                    return;
                 }
                 progress.setProgress(++finished);
             }
@@ -144,11 +148,11 @@ public class GuiDownloadNew extends JFrame {
         }
     }
     
-    private RefreshListener refresh;
+    private final RefreshListener refresh;
     
     private Thread downloadTask;
     
-    public GuiDownloadNew(RefreshListener refresh) {
+    public GuiDownloadNew(RefreshListener refresh) throws IOException {
         
         this.refresh = refresh;
 
@@ -158,7 +162,12 @@ public class GuiDownloadNew extends JFrame {
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         
         VersionLookup.INSTANCE.refresh();
+
         VersionJson data = VersionLookup.INSTANCE.getVersions();
+        if (data == null || data.getVersions().isEmpty()) {
+            throw new IOException("Version list empty/missing!");
+        }
+        
         TreeMap<ComparableVersion, MappingsJson> mappings = new TreeMap<>();
         for (String v : data.getVersions()) {
             mappings.put(new ComparableVersion(v), data.getMappings(v));

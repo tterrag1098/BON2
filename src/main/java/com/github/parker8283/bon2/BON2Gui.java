@@ -1,6 +1,7 @@
 package com.github.parker8283.bon2;
 
 import java.awt.Dimension;
+import java.io.IOException;
 import java.util.List;
 import java.util.prefs.Preferences;
 
@@ -72,7 +73,11 @@ public class BON2Gui extends JFrame {
         JButton btnRefreshVers = new JButton("Refresh");
         RefreshListener refresh = new RefreshListener(this, forgeVersions);
         btnRefreshVers.addMouseListener(refresh);
-        VersionLookup.INSTANCE.refresh(); // make sure we've queried the json, as this will halt the main thread
+        try {
+            VersionLookup.INSTANCE.refresh(); // make sure we've queried the json, as this will halt the main thread
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Could not load MCP versions from web, mapping versions may be incomplete.", "Warning", JOptionPane.WARNING_MESSAGE);
+        }
         refresh.mouseClicked(null); // update the versions initially
         String forgeVer = prefs.get(PREFS_KEY_FORGEVER, "");
         for (MappingVersion m : comboBoxToList(forgeVersions)) {
@@ -93,7 +98,13 @@ public class BON2Gui extends JFrame {
         
         JButton buttonDownload = new JButton("Download");
         buttonDownload.addActionListener(e -> {
-            GuiDownloadNew gui = new GuiDownloadNew(refresh);
+            GuiDownloadNew gui;
+            try {
+                gui = new GuiDownloadNew(refresh);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(BON2Gui.this, ex, "Could not load mappings", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             gui.setLocation(getLocation());
             gui.setVisible(true);
         });

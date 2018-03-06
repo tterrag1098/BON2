@@ -8,8 +8,6 @@ import java.net.URL;
 import java.util.Map;
 
 import com.github.parker8283.bon2.data.VersionJson.MappingsJson;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -21,16 +19,18 @@ public enum VersionLookup {
     private static final String VERSION_JSON = "http://export.mcpbot.bspk.rs/versions.json";
     private static final Gson GSON = new GsonBuilder().create();
 
-    private VersionJson jsoncache = new VersionJson(Maps.newHashMap());
+    private VersionJson jsoncache;
 
     public String getVersionFor(String version) {
-        for (String s : jsoncache.getVersions()) {
-            MappingsJson mappings = jsoncache.getMappings(s);
-            if (mappings.hasSnapshot(version) || mappings.hasStable(version)) {
-                return s;
+        if (jsoncache != null) {
+            for (String s : jsoncache.getVersions()) {
+                MappingsJson mappings = jsoncache.getMappings(s);
+                if (mappings.hasSnapshot(version) || mappings.hasStable(version)) {
+                    return s;
+                }
             }
         }
-        return "unknown";
+        return null;
     }
     
     public VersionJson getVersions() {
@@ -38,22 +38,17 @@ public enum VersionLookup {
     }
 
     @SuppressWarnings("serial")
-    public void refresh() {
+    public void refresh() throws IOException {        
+        URL url = new URL(VERSION_JSON);
+        HttpURLConnection request = (HttpURLConnection) url.openConnection();
+        request.connect();
+
+        Reader in = new InputStreamReader(request.getInputStream());
 
         try {
-            URL url = new URL(VERSION_JSON);
-            HttpURLConnection request = (HttpURLConnection) url.openConnection();
-            request.connect();
-
-            Reader in = new InputStreamReader(request.getInputStream());
-
-            try {
-                INSTANCE.jsoncache = new VersionJson(GSON.fromJson(in, new TypeToken<Map<String, MappingsJson>>(){}.getType()));
-            } finally {
-                in.close();
-            }
-        } catch (IOException e) {
-            Throwables.propagate(e);
+            INSTANCE.jsoncache = new VersionJson(GSON.fromJson(in, new TypeToken<Map<String, MappingsJson>>() {}.getType()));
+        } finally {
+            in.close();
         }
     }
 }

@@ -62,6 +62,10 @@ public class MappingVersion implements Comparable<MappingVersion> {
         } else if ("unknown".equals(v2)) {
             return 1;
         }
+        
+        if (!v1.contains("-") || !v2.contains("-")) {
+            return v1.compareTo(v2);
+        }
 
         v1 = v1.substring(0, v1.indexOf('-'));
         v2 = v2.substring(0, v2.indexOf('-'));

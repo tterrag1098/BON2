@@ -67,7 +67,12 @@ public class BONUtils {
     }
     
     private static String getFullVersion(File mappingsfolder) {
-        return VersionLookup.INSTANCE.getVersionFor(mappingsfolder.getName()) + "-" + mappingsfolder.getParentFile().getName().substring(4) + "_" + mappingsfolder.getName();
+        String version = VersionLookup.INSTANCE.getVersionFor(mappingsfolder.getName());
+        String ret = mappingsfolder.getParentFile().getName().substring(4) + "_" + mappingsfolder.getName();
+        if (version != null) {
+            ret = version + "-" + ret;
+        }
+        return ret;
     }
     
     /**
