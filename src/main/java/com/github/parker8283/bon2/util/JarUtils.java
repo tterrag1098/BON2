@@ -39,11 +39,17 @@ public class JarUtils {
                 if(name.endsWith(".class")) {
                     byte[] bytes = IOUtils.readStreamFully(jin);
                     if(bytes.length > 0) {
-                        ClassNode cn = IOUtils.readClassFromBytes(bytes);
-                        if(!name.equals(cn.name + ".class")) {
-                            errorHandler.handleError("There was an error in reading a class. Corrupted JAR maybe?\n" + name + " != " + cn.name + ".class", false);
-                        } else {
-                            classes.add(cn);
+                        ClassNode cn = null;
+                        try {
+                            cn = IOUtils.readClassFromBytes(bytes);
+                            
+                            if(!name.equals(cn.name + ".class")) {
+                                errorHandler.handleError("There was an error in reading a class. Corrupted JAR maybe?\n" + name + " != " + cn.name + ".class", false);
+                            } else {
+                                classes.add(cn);
+                            }
+                        } catch (Exception e) {
+                            errorHandler.handleError("There was an unexpected error while reading class data. Corrupted JAR maybe?\n" + name, false);
                         }
                     } else {
                         errorHandler.handleError("Found a class with no content. Corrupted JAR maybe?\nClass was:" + name + "\nThe class will be skipped.", true);
