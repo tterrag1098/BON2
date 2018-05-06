@@ -20,7 +20,9 @@ public class FixedJarInputStream extends JarInputStream {
         JarFile jar = new JarFile(file);
         JarEntry manifestEntry = jar.getJarEntry(JarFile.MANIFEST_NAME);
         try {
-            this.manifest = new Manifest(jar.getInputStream(manifestEntry));
+            if (manifestEntry != null) {
+                this.manifest = new Manifest(jar.getInputStream(manifestEntry));
+            }
         } finally {
             jar.close();
         }
