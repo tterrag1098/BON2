@@ -40,6 +40,9 @@ public class BrowseListener extends MouseAdapter {
         String key = isOpen ? BON2Gui.PREFS_KEY_OPEN_LOC : BON2Gui.PREFS_KEY_SAVE_LOC;
         String savedDir = parent.prefs.get(key, Paths.get("").toAbsolutePath().toString());
         File currentDir = new File(savedDir);
+        if(!Paths.get(savedDir).getRoot().toFile().exists()){
+            currentDir = Paths.get("").toAbsolutePath().toFile();
+        }
         while (!currentDir.isDirectory()) {
             currentDir = currentDir.getParentFile();
         }
