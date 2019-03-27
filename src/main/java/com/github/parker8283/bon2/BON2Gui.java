@@ -67,7 +67,12 @@ public class BON2Gui extends JFrame {
                     evt.acceptDrop(DnDConstants.ACTION_REFERENCE);
                     List<File> droppedFiles = (List<File>) evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
                     if (droppedFiles.size() == 1){
-                        inputJarLoc.setText(droppedFiles.get(0).getAbsolutePath());
+                        String target = droppedFiles.get(0).getAbsolutePath();
+                        inputJarLoc.setText(target);
+                        int extIndex = target.lastIndexOf('.');
+                        if (extIndex != -1) {
+                            outputJarLoc.setText(target.substring(0, extIndex) + "-deobf" + target.substring(extIndex));
+                        }
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
