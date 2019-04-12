@@ -18,6 +18,15 @@ import com.github.parker8283.bon2.gui.RefreshListener;
 import com.github.parker8283.bon2.gui.StartListener;
 import com.google.common.collect.Lists;
 
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDropEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.prefs.Preferences;
+
 public class BON2Gui extends JFrame {
 
     public static final String ERROR_DIALOG_TITLE = "Error - BON2";
@@ -52,6 +61,24 @@ public class BON2Gui extends JFrame {
 
         inputJarLoc = new JTextField();
         inputJarLoc.setColumns(10);
+        inputJarLoc.setDropTarget(new DropTarget() {
+            public synchronized void drop(DropTargetDropEvent evt) {
+                try {
+                    evt.acceptDrop(DnDConstants.ACTION_REFERENCE);
+                    List<File> droppedFiles = (List<File>) evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                    if (droppedFiles.size() == 1){
+                        String target = droppedFiles.get(0).getAbsolutePath();
+                        inputJarLoc.setText(target);
+                        int extIndex = target.lastIndexOf('.');
+                        if (extIndex != -1) {
+                            outputJarLoc.setText(target.substring(0, extIndex) + "-deobf" + target.substring(extIndex));
+                        }
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
 
         JButton btnBrouseInput = new JButton("Browse");
         btnBrouseInput.addMouseListener(new BrowseListener(this, true, inputJarLoc));
@@ -61,6 +88,19 @@ public class BON2Gui extends JFrame {
 
         outputJarLoc = new JTextField();
         outputJarLoc.setColumns(10);
+        outputJarLoc.setDropTarget(new DropTarget() {
+            public synchronized void drop(DropTargetDropEvent evt) {
+                try {
+                    evt.acceptDrop(DnDConstants.ACTION_REFERENCE);
+                    List<File> droppedFiles = (List<File>) evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                    if (droppedFiles.size() == 1){
+                        outputJarLoc.setText(droppedFiles.get(0).getAbsolutePath());
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
 
         btnBrouseOutput = new JButton("Browse");
         btnBrouseOutput.addMouseListener(new BrowseListener(this, false, outputJarLoc));
