@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.jar.*;
@@ -55,8 +56,11 @@ public class JarUtils {
                         errorHandler.handleError("Found a class with no content. Corrupted JAR maybe?\nClass was:" + name + "\nThe class will be skipped.", true);
                     }
                 } else {
-                    if(name.toUpperCase().contains("MANIFEST.MF")) continue;
-                    extraFiles.put(name, IOUtils.readStreamFully(jin));
+                    String upperCaseName = name.toUpperCase(Locale.ROOT);
+                    // Skip MANIFEST, since it's handled specially, and any signature files as they will be invalid after modifying binaries
+                    if (!upperCaseName.startsWith("META-INF/") || (!upperCaseName.endsWith("MANIFEST.MF") && !upperCaseName.endsWith(".SF") && !upperCaseName.endsWith(".RSA"))) {
+                        extraFiles.put(name, IOUtils.readStreamFully(jin));
+                    }
                 }
                 progress.setProgress((int)(currentProgress += entry.getCompressedSize()));
             }
