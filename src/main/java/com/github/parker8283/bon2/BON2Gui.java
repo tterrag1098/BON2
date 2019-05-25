@@ -15,8 +15,10 @@ import com.github.parker8283.bon2.data.MappingVersion;
 import com.github.parker8283.bon2.data.VersionLookup;
 import com.github.parker8283.bon2.gui.BrowseListener;
 import com.github.parker8283.bon2.gui.JarDropTarget;
+import com.github.parker8283.bon2.gui.LinuxBrowseListener;
 import com.github.parker8283.bon2.gui.RefreshListener;
 import com.github.parker8283.bon2.gui.StartListener;
+import com.github.parker8283.bon2.util.OSUtils;
 import com.google.common.collect.Lists;
 
 import java.awt.datatransfer.DataFlavor;
@@ -68,8 +70,20 @@ public class BON2Gui extends JFrame {
         }));
 
         JButton btnBrouseInput = new JButton("Browse");
-        btnBrouseInput.addMouseListener(new BrowseListener(this, true, inputJarLoc));
-
+        
+        if (OSUtils.getOS() != OSUtils.OS.Linux)
+        {
+          
+          btnBrouseInput.addMouseListener(new BrowseListener(this, true, inputJarLoc));
+          
+        }
+        else
+        {
+          
+          btnBrouseInput.addMouseListener(new LinuxBrowseListener(this, true, inputJarLoc));
+          
+        }
+        
         lblOutput = new JLabel("Output JAR");
         lblOutput.setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -78,7 +92,19 @@ public class BON2Gui extends JFrame {
         outputJarLoc.setDropTarget(new JarDropTarget(this, path -> outputJarLoc.setText(path)));
 
         btnBrouseOutput = new JButton("Browse");
-        btnBrouseOutput.addMouseListener(new BrowseListener(this, false, outputJarLoc));
+        
+        if (OSUtils.getOS() != OSUtils.OS.Linux)
+        {
+          
+          btnBrouseOutput.addMouseListener(new BrowseListener(this, false, outputJarLoc));
+          
+        }
+        else
+        {
+          
+         btnBrouseOutput.addMouseListener(new LinuxBrowseListener(this, false, outputJarLoc)); 
+          
+        }
 
         lblForgeVer = new JLabel("Mappings");
         lblForgeVer.setHorizontalAlignment(SwingConstants.CENTER);
