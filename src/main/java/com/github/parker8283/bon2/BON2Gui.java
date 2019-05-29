@@ -71,17 +71,10 @@ public class BON2Gui extends JFrame {
 
         JButton btnBrouseInput = new JButton("Browse");
         
-        if (OSUtils.getOS() != OSUtils.OS.Linux)
-        {
-          
-          btnBrouseInput.addMouseListener(new BrowseListener(this, true, inputJarLoc));
-          
-        }
-        else
-        {
-          
-          btnBrouseInput.addMouseListener(new LinuxBrowseListener(this, true, inputJarLoc));
-          
+        if (OSUtils.getOS() != OSUtils.OS.Linux) {
+            btnBrouseInput.addMouseListener(new BrowseListener(this, true, inputJarLoc));
+        } else {
+            btnBrouseInput.addMouseListener(new LinuxBrowseListener(this, true, inputJarLoc));
         }
         
         lblOutput = new JLabel("Output JAR");
@@ -93,17 +86,10 @@ public class BON2Gui extends JFrame {
 
         btnBrouseOutput = new JButton("Browse");
         
-        if (OSUtils.getOS() != OSUtils.OS.Linux)
-        {
-          
+        if (OSUtils.getOS() != OSUtils.OS.Linux) {
           btnBrouseOutput.addMouseListener(new BrowseListener(this, false, outputJarLoc));
-          
-        }
-        else
-        {
-          
+        } else {
          btnBrouseOutput.addMouseListener(new LinuxBrowseListener(this, false, outputJarLoc)); 
-          
         }
 
         lblForgeVer = new JLabel("Mappings");
