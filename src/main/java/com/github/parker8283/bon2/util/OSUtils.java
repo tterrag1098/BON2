@@ -1,6 +1,8 @@
 //MrPyro 2019
 package com.github.parker8283.bon2.util;
 
+import java.util.Locale;
+
 public class OSUtils {
     public enum OS {
         Windows,
@@ -8,7 +10,7 @@ public class OSUtils {
         Linux
     }
     
-    private static String OSProp = System.getProperty("os.name").toLowerCase();
+    private static String OSProp = System.getProperty("os.name").toLowerCase(Locale.ROOT);
     
     private static OS current = null;
     
