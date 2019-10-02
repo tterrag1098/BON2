@@ -8,9 +8,9 @@ import java.net.URL;
 import java.util.Map;
 
 import com.github.parker8283.bon2.data.VersionJson.MappingsJson;
-import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 public enum VersionLookup {
 
@@ -32,13 +32,12 @@ public enum VersionLookup {
         }
         return null;
     }
-    
+
     public VersionJson getVersions() {
         return jsoncache;
     }
 
-    @SuppressWarnings("serial")
-    public void refresh() throws IOException {        
+    public void refresh() throws IOException {
         URL url = new URL(VERSION_JSON);
         HttpURLConnection request = (HttpURLConnection) url.openConnection();
         request.connect();

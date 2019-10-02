@@ -2,6 +2,7 @@ package com.github.parker8283.bon2;
 
 import java.awt.Dimension;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.Preferences;
 
@@ -19,16 +20,6 @@ import com.github.parker8283.bon2.gui.LinuxBrowseListener;
 import com.github.parker8283.bon2.gui.RefreshListener;
 import com.github.parker8283.bon2.gui.StartListener;
 import com.github.parker8283.bon2.util.OSUtils;
-import com.google.common.collect.Lists;
-
-import java.awt.datatransfer.DataFlavor;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DropTarget;
-import java.awt.dnd.DropTargetDropEvent;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.prefs.Preferences;
 
 public class BON2Gui extends JFrame {
 
@@ -70,13 +61,13 @@ public class BON2Gui extends JFrame {
         }));
 
         JButton btnBrouseInput = new JButton("Browse");
-        
+
         if (OSUtils.getOS() != OSUtils.OS.Linux) {
             btnBrouseInput.addMouseListener(new BrowseListener(this, true, inputJarLoc));
         } else {
             btnBrouseInput.addMouseListener(new LinuxBrowseListener(this, true, inputJarLoc));
         }
-        
+
         lblOutput = new JLabel("Output JAR");
         lblOutput.setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -85,11 +76,11 @@ public class BON2Gui extends JFrame {
         outputJarLoc.setDropTarget(new JarDropTarget(this, path -> outputJarLoc.setText(path)));
 
         btnBrouseOutput = new JButton("Browse");
-        
+
         if (OSUtils.getOS() != OSUtils.OS.Linux) {
           btnBrouseOutput.addMouseListener(new BrowseListener(this, false, outputJarLoc));
         } else {
-         btnBrouseOutput.addMouseListener(new LinuxBrowseListener(this, false, outputJarLoc)); 
+         btnBrouseOutput.addMouseListener(new LinuxBrowseListener(this, false, outputJarLoc));
         }
 
         lblForgeVer = new JLabel("Mappings");
@@ -112,7 +103,7 @@ public class BON2Gui extends JFrame {
                 forgeVersions.setSelectedItem(m);
             }
         }
-        
+
         // Add this after previously saved value is set
         forgeVersions.addActionListener(e -> {
             Object selected = forgeVersions.getSelectedItem();
@@ -122,7 +113,7 @@ public class BON2Gui extends JFrame {
                 prefs.put(BON2Gui.PREFS_KEY_FORGEVER, selected.toString());
             }
         });
-        
+
         JButton buttonDownload = new JButton("Download");
         buttonDownload.addActionListener(e -> {
             GuiDownloadNew gui;
@@ -201,7 +192,7 @@ public class BON2Gui extends JFrame {
                     .addComponent(lblProgressText)
                     .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        
+
         contentPane.setLayout(gl_contentPane);
     }
 
@@ -210,7 +201,7 @@ public class BON2Gui extends JFrame {
     }
 
     private <T> List<T> comboBoxToList(JComboBox<T> comboBox) {
-        List<T> ret = Lists.newArrayList();
+        List<T> ret = new ArrayList<>();
         for(int i = 0; i < comboBox.getItemCount(); i++) {
             ret.add(comboBox.getItemAt(i));
         }

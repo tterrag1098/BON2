@@ -7,6 +7,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
@@ -28,14 +29,13 @@ import javax.swing.text.JTextComponent;
 import com.github.parker8283.bon2.data.BONFiles;
 import com.github.parker8283.bon2.data.MappingVersion;
 import com.github.parker8283.bon2.data.VersionLookup;
-import com.google.common.collect.Lists;
 
 public class BONUtils {
 
     private static final Matcher versionMatcher = Pattern.compile("^\\d+\\.\\d+(\\.\\d+)?(_\\w+)?-\\d+\\.\\d+\\.\\d+\\.\\d+(-.+)?").matcher("");
 
     public static List<MappingVersion> buildValidMappings() {
-        List<MappingVersion> versions = Lists.newArrayList();
+        List<MappingVersion> versions = new ArrayList<>();
 
         File[] fg1_versionFolders = BONFiles.MINECRAFTFORGE_FORGE_FOLDER.listFiles();
         if(fg1_versionFolders != null) {
@@ -65,7 +65,7 @@ public class BONUtils {
         versions.sort(null);
         return versions;
     }
-    
+
     private static String getFullVersion(File mappingsfolder) {
         String version = VersionLookup.INSTANCE.getVersionFor(mappingsfolder.getName());
         String ret = mappingsfolder.getParentFile().getName().substring(4) + "_" + mappingsfolder.getName();
@@ -74,14 +74,14 @@ public class BONUtils {
         }
         return ret;
     }
-    
+
     /**
      * Installs a listener to receive notification when the text of any
      * {@code JTextComponent} is changed. Internally, it installs a
      * {@link DocumentListener} on the text component's {@link Document},
      * and a {@link PropertyChangeListener} on the text component to detect
      * if the {@code Document} itself is replaced.
-     * 
+     *
      * @param text any text component, such as a {@link JTextField}
      *        or {@link JTextArea}
      * @param changeListener a listener to receieve {@link ChangeEvent}s
@@ -126,7 +126,7 @@ public class BONUtils {
         Document d = text.getDocument();
         if (d != null) d.addDocumentListener(dl);
     }
-    
+
     /**
      * @author Ilias Tsagklis
      *         <p>

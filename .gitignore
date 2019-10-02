@@ -18,3 +18,4 @@
 # Mac Crap
 .DS_Store
 *.command
+/repo/

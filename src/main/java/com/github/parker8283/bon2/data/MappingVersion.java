@@ -2,18 +2,19 @@ package com.github.parker8283.bon2.data;
 
 import java.io.File;
 
-import com.google.common.base.Preconditions;
-
 public class MappingVersion implements Comparable<MappingVersion> {
 
     private String version;
     private File srgs;
-    
+
     public MappingVersion(String version, File srgs) {
-        Preconditions.checkNotNull(version);
-        Preconditions.checkNotNull(srgs);
-        Preconditions.checkArgument(srgs.exists() && srgs.isDirectory(), "Folder for srgs does not exist or is not a directory.");
-        
+        if (version == null)
+            throw new IllegalArgumentException("Invalid argument: version - Is Null");
+        if (srgs == null)
+            throw new IllegalArgumentException("Invalid argument: srgs - Is Null");
+        if (srgs.exists() && srgs.isDirectory())
+            throw new IllegalArgumentException("Invalid argument: srgs - Folder for srgs does not exist or is not a directory.");
+
         this.version = version;
         this.srgs = srgs;
     }
@@ -25,7 +26,7 @@ public class MappingVersion implements Comparable<MappingVersion> {
     public String getVersion() {
         return version;
     }
-    
+
     @Override
     public String toString() {
         return version;
@@ -62,17 +63,17 @@ public class MappingVersion implements Comparable<MappingVersion> {
         } else if ("unknown".equals(v2)) {
             return 1;
         }
-        
+
         if (!v1.contains("-") || !v2.contains("-")) {
             return v1.compareTo(v2);
         }
 
         v1 = v1.substring(0, v1.indexOf('-'));
         v2 = v2.substring(0, v2.indexOf('-'));
-        
+
         String[] subv1 = v1.split("\\.");
         String[] subv2 = v2.split("\\.");
-        
+
         for (int i = 0; i < Math.max(subv1.length, subv2.length); i++) {
             if (i >= subv1.length) {
                 return -1;
@@ -85,7 +86,7 @@ public class MappingVersion implements Comparable<MappingVersion> {
                 return sub1 - sub2;
             }
         }
-        
+
         return v1.compareTo(v2);
     }
 }

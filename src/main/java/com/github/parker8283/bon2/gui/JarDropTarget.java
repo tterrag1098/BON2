@@ -13,19 +13,20 @@ import javax.swing.JOptionPane;
 
 @SuppressWarnings("serial")
 public class JarDropTarget extends DropTarget {
-    
+
     private final Component parent;
     private final Consumer<String> action;
-    
+
     public JarDropTarget(Component parent, Consumer<String> action) {
         this.parent = parent;
         this.action = action;
     }
-    
+
     @Override
     public synchronized void drop(DropTargetDropEvent dtde) {
         try {
             dtde.acceptDrop(DnDConstants.ACTION_REFERENCE);
+            @SuppressWarnings("unchecked")
             List<File> droppedFiles = (List<File>) dtde.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
             if (droppedFiles.size() == 1){
                 String target = droppedFiles.get(0).getAbsolutePath();

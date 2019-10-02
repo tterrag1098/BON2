@@ -3,6 +3,9 @@ package com.github.parker8283.bon2.util;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -15,15 +18,12 @@ import com.github.parker8283.bon2.data.IErrorHandler;
 import com.github.parker8283.bon2.data.IProgressListener;
 import com.github.parker8283.bon2.io.FixedJarInputStream;
 import com.github.parker8283.bon2.srg.ClassCollection;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 public class JarUtils {
 
     public static ClassCollection readFromJar(File file, IErrorHandler errorHandler, IProgressListener progress) throws IOException {
-        List<ClassNode> classes = Lists.newArrayList();
-        Map<String, byte[]> extraFiles = Maps.newHashMap();
+        List<ClassNode> classes = new ArrayList<>();
+        Map<String, byte[]> extraFiles = new HashMap<>();
         Manifest manifest = null;
         FixedJarInputStream jin = null;
         long fileSize = file.length();
@@ -43,7 +43,7 @@ public class JarUtils {
                         ClassNode cn = null;
                         try {
                             cn = IOUtils.readClassFromBytes(bytes);
-                            
+
                             if(!name.equals(cn.name + ".class")) {
                                 errorHandler.handleError("There was an error in reading a class. Corrupted JAR maybe?\n" + name + " != " + cn.name + ".class", false);
                             } else {
@@ -79,7 +79,7 @@ public class JarUtils {
             file.delete();
         }
         int classesWritten = 0;
-        Set<String> dirs = Sets.newHashSet();
+        Set<String> dirs = new HashSet<>();
         JarOutputStream jout = null;
         progress.start(cc.getClasses().size() + cc.getExtraFiles().size() + 1, "Writing remapped JAR");
         try {
