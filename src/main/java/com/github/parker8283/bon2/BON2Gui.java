@@ -102,7 +102,7 @@ public class BON2Gui extends JFrame {
         Runnable mcVerRefreshCallback = () -> {
             Object selected = cmbMinecraftVers.getSelectedItem();
             cmbMinecraftVers.removeAllItems();
-            MinecraftVersions.getKnownVersions(true).forEach(v -> cmbMinecraftVers.insertItemAt(v, 0));
+            MinecraftVersions.getKnownVersions(true).stream().filter(v -> MCPVersions.get(v) != null).forEach(v -> cmbMinecraftVers.insertItemAt(v, 0));
             cmbMinecraftVers.setSelectedItem(selected);
         };
         mcVerRefreshCallback.run();
