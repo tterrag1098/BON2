@@ -91,7 +91,7 @@ public class BON2 {
             try {
                 IProgressListener progress = new CLIProgressListener();
 
-                File mcpTarget = mcp.getTarget(BONFiles.FG3_DOWNLOAD_CACHE);
+                File mcpTarget = mcp.getTarget();
                 if (!DownloadUtils.downloadWithCache(new URL(mcp.getUrl()), mcpTarget, false, false, progress)) {
                     System.err.println("Could not download MCP:");
                     System.err.println("  URL:    " + mcp.getUrl());
@@ -99,7 +99,7 @@ public class BON2 {
                     System.exit(1);
                 }
 
-                File mapTarget = mapping.getTarget(BONFiles.FG3_DOWNLOAD_CACHE);
+                File mapTarget = mapping.getTarget();
                 if (!DownloadUtils.downloadWithCache(new URL(mapping.getUrl()), mcpTarget, false, false, progress)) {
                     System.err.println("Could not download Mapping:");
                     System.err.println("  URL:    " + mapping.getUrl());

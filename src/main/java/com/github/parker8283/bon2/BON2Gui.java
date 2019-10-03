@@ -36,7 +36,7 @@ public class BON2Gui extends JFrame {
 
     public static final String ERROR_DIALOG_TITLE = "Error - BON2";
     private static final String PREFS_KEY_MC_VERSION = "mcVer";
-    public static final String PREFS_KEY_MAP_VERSION = "mapVer";
+    private static final String PREFS_KEY_MAP_VERSION = "mapVer";
     public static final String PREFS_KEY_OPEN_LOC = "openLoc";
     public static final String PREFS_KEY_SAVE_LOC = "closeLoc";
 
@@ -122,7 +122,7 @@ public class BON2Gui extends JFrame {
             } else {
                 prefs.put(PREFS_KEY_MC_VERSION, selected.toString());
                 MCPVersion v = MCPVersions.get(selected);
-                btnMinecraftVerDownload.setEnabled((v != null && !v.getTarget(BONFiles.FG3_DOWNLOAD_CACHE).exists()));
+                btnMinecraftVerDownload.setEnabled((v != null && !v.getTarget().exists()));
             }
         });
         btnMinecraftVerDownload.addActionListener(e -> {
@@ -133,7 +133,7 @@ public class BON2Gui extends JFrame {
                 lblProgressText.setText("No Minecraft version selected");
                 return;
             }
-            File target = v.getTarget(BONFiles.FG3_DOWNLOAD_CACHE);
+            File target = v.getTarget();
             if (target.exists()) {
                 lblProgressText.setText("File already exists! " + target.getAbsolutePath());
                 return;

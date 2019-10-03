@@ -6,7 +6,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.github.parker8283.bon2.data.BONFiles;
 import com.github.parker8283.bon2.data.IErrorHandler;
 import com.github.parker8283.bon2.data.IProgressListener;
 import com.github.parker8283.bon2.srg.ClassCollection;
@@ -26,7 +25,7 @@ public class BON2Impl {
      * @param progressListener An IProgressListener impl to handle listening to the progress of the remapping.
      */
     public static void remap(File inputJar, File outputJar, MCPVersion mcp, MappingVersion mappings, IErrorHandler errorHandler, IProgressListener progressListener) throws IOException {
-        Map<String, String> mcpToMaped = loadMappings(mappings.getTarget(BONFiles.FG3_DOWNLOAD_CACHE), progressListener);
+        Map<String, String> mcpToMaped = loadMappings(mappings.getTarget(), progressListener);
         ClassCollection inputCC = JarUtils.readFromJar(inputJar, errorHandler, progressListener);
         ClassCollection outputCC = Remapper.remap(mcpToMaped, inputCC, progressListener);
         JarUtils.writeToJar(outputCC, outputJar, progressListener);

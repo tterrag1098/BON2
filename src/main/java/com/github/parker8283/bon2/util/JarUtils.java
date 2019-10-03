@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.jar.*;
+import java.util.zip.ZipEntry;
 
 import org.objectweb.asm.tree.ClassNode;
 
@@ -20,6 +22,7 @@ import com.github.parker8283.bon2.io.FixedJarInputStream;
 import com.github.parker8283.bon2.srg.ClassCollection;
 
 public class JarUtils {
+    public static final TimeZone GMT = TimeZone.getTimeZone("GMT");
 
     public static ClassCollection readFromJar(File file, IErrorHandler errorHandler, IProgressListener progress) throws IOException {
         List<ClassNode> classes = new ArrayList<>();
@@ -137,5 +140,14 @@ public class JarUtils {
             manifestOut.getEntries().remove(entry.getKey());
         }
         return manifestOut;
+    }
+
+    public static ZipEntry getStableEntry(String name) {
+        TimeZone _default = TimeZone.getDefault();
+        TimeZone.setDefault(GMT);
+        ZipEntry ret = new ZipEntry(name);
+        ret.setTime(628041600000L);
+        TimeZone.setDefault(_default);
+        return ret;
     }
 }

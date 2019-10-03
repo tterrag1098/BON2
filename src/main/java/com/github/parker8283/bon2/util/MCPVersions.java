@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.github.parker8283.bon2.data.BONFiles;
 import com.google.gson.annotations.SerializedName;
 
 import net.minecraftforge.srgutils.MinecraftVersion;
@@ -88,6 +89,10 @@ public class MCPVersions {
 
         public String getUrl() {
             return this.url;
+        }
+
+        public File getTarget() {
+            return getTarget(BONFiles.FG3_DOWNLOAD_CACHE);
         }
 
         public abstract File getTarget(File cacheRoot);

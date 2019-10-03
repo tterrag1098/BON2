@@ -26,12 +26,13 @@ public class MappingVersions {
     private static final String VERSION_JSON = "http://export.mcpbot.bspk.rs/versions.json";
     private static final String FORGE_MAVEN = "http://files.minecraftforge.net/maven/";
     private static final String MCP_ROOT = "de/oceanlabs/mcp/";
+    private static final MinecraftVersion v1_14_4 = MinecraftVersion.from("1.14.4");
 
     private static Map<MinecraftVersion, List<MappingVersion>> knownVersions;
 
     public static List<MappingVersion> getExistingVersions() {
         List<MappingVersion> ret = new ArrayList<>();
-        getKnownVersions().forEach((k,v) -> v.stream().filter(e -> e.getTarget(BONFiles.FG3_DOWNLOAD_CACHE).exists()).forEach(ret::add));
+        getKnownVersions().forEach((k,v) -> v.stream().filter(e -> e.getTarget().exists()).forEach(ret::add));
         return ret;
     }
 
@@ -47,7 +48,7 @@ public class MappingVersions {
         //MCPBot does not publish as a real maven artifact, so we can't use the standard Forge Maven metadata system.
         //merge(versions, findForgeSnapshot());
         //merge(versions, findForgeStable());
-        //TODO: Official Mappings
+        merge(versions, findOfficial());
 
         Map<MinecraftVersion, List<MappingVersion>> ret = new TreeMap<>(); //TreeMaps are sorted...
         versions.forEach((k,v) -> ret.put(k, Collections.unmodifiableList(v.stream().sorted().collect(Collectors.toList()))));
@@ -101,6 +102,14 @@ public class MappingVersions {
             e.printStackTrace();
             return Collections.emptyMap();
         }
+    }
+
+    private static Map<MinecraftVersion, Set<MappingVersion>> findOfficial() {
+        //This has no official/simple way to index, so we are just gunna hardcode/guess that everything 1.14.4+ has an official version
+        //If this changes in the future, oh well...
+        Map<MinecraftVersion, Set<MappingVersion>> ret = new HashMap<>();
+        MinecraftVersions.getKnownVersions().stream().filter(v -> v.compareTo(v1_14_4) >= 0).forEach(v -> ret.put(v, Collections.singleton(new OfficialMappingVersion(v.toString()))));
+        return ret;
     }
 
     @SuppressWarnings("unused")
@@ -161,9 +170,14 @@ public class MappingVersions {
         protected MappingVersion(Type type, String ver, String url, String path) {
             this.type = type;
             String[] pts = ver.split("-");
-            this.version = Integer.parseInt(pts[0]);
-            this.mcver = MinecraftVersion.from(pts[1]);
-            this.url = url + path;
+            if (pts.length == 1) {
+                this.version = Integer.MAX_VALUE;
+                this.mcver = MinecraftVersion.from(ver);
+            } else {
+                this.version = Integer.parseInt(pts[0]);
+                this.mcver = MinecraftVersion.from(pts[1]);
+            }
+            this.url = url == null ? null : url + path;
             this.path = path;
         }
 
@@ -183,6 +197,10 @@ public class MappingVersions {
             return this.mcver;
         }
 
+        public File getTarget() {
+            return getTarget(BONFiles.FG3_DOWNLOAD_CACHE);
+        }
+
         public File getTarget(File cacheRoot) {
             return new File(cacheRoot, path);
         }
@@ -198,7 +216,7 @@ public class MappingVersions {
 
         @Override
         public String toString() {
-            return this.type.name().toLowerCase() + '_' + this.version + '-' + this.mcver;
+            return this.mcver.toString() + ' ' + this.type.name().toLowerCase() + ' ' + this.version;
         }
 
         @Override
@@ -227,6 +245,17 @@ public class MappingVersions {
     public static class SnapshotMappingVersion extends MappingVersion {
         protected SnapshotMappingVersion(String ver) {
             super(Type.SNAPSHOT, ver, FORGE_MAVEN, MCP_ROOT + "mcp_snapshot_nodoc/" + ver + "/mcp_snapshot_nodoc-" + ver + ".zip");
+        }
+    }
+
+    public static class OfficialMappingVersion extends MappingVersion {
+        protected OfficialMappingVersion(String ver) {
+            super(Type.OFFICIAL, ver, null, "net/minecraft/mappings_official/" + ver + "/mappings_official-" + ver + ".zip");
+        }
+
+        @Override
+        public String toString() {
+            return this.mcver + " official";
         }
     }
 }

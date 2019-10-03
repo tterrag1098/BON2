@@ -1,12 +1,16 @@
 package com.github.parker8283.bon2.data;
 
 import java.awt.Dimension;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormatSymbols;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.zip.ZipOutputStream;
 
 import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
@@ -18,13 +22,24 @@ import javax.swing.tree.TreePath;
 import com.github.parker8283.bon2.gui.GUIProgressListener;
 import com.github.parker8283.bon2.util.BONUtils;
 import com.github.parker8283.bon2.util.DownloadUtils;
+import com.github.parker8283.bon2.util.IOUtils;
+import com.github.parker8283.bon2.util.JarUtils;
+import com.github.parker8283.bon2.util.MCPVersions;
+import com.github.parker8283.bon2.util.MCPVersions.MCPVersion;
 import com.github.parker8283.bon2.util.MappingVersions;
 import com.github.parker8283.bon2.util.MappingVersions.MappingVersion;
+import com.github.parker8283.bon2.util.MinecraftVersions;
+import com.github.parker8283.bon2.util.MinecraftVersions.MappingsUrls;
 
+import net.minecraftforge.srgutils.IMappingFile;
+import net.minecraftforge.srgutils.IMappingFile.IClass;
+import net.minecraftforge.srgutils.IMappingFile.IField;
+import net.minecraftforge.srgutils.IMappingFile.IMethod;
 import net.minecraftforge.srgutils.MinecraftVersion;
 
 public class GuiDownloadNew extends JFrame {
     private static final String[] MONTHS = new DateFormatSymbols().getMonths();
+
     private class DownloadMappingsTask implements Runnable {
 
         private final Queue<MappingVersion> versions;
@@ -45,9 +60,14 @@ public class GuiDownloadNew extends JFrame {
                     //progress.setLabel("Downloading: " + entry.toString());
                     try {
                         if (entry.getType() == MappingVersions.Type.OFFICIAL) {
-                            //TODO: Download version manifest, and mapping file, and generate mappings
+                            if (!createOfficial(entry)) {
+                                JOptionPane.showMessageDialog(GuiDownloadNew.this, "Failed to create official mapping for " + entry.getMCVersion() + " This typically means that Mojang did not provide official mappings. Check log for more details.", "Error downloading mappings", JOptionPane.ERROR_MESSAGE);
+                                versions.clear();
+                                progress.start(0, "Error");
+                                progress.setProgress(0);
+                            }
                         } else {
-                            File target = entry.getTarget(BONFiles.FG3_DOWNLOAD_CACHE);
+                            File target = entry.getTarget();
                             if (!DownloadUtils.downloadWithCache(new URL(entry.getUrl()), target, false, false, this.progress)) {
                                 JOptionPane.showMessageDialog(GuiDownloadNew.this, "Failed to download " + entry.getUrl(), "Error downloading mappings", JOptionPane.ERROR_MESSAGE);
                                 versions.clear();
@@ -71,6 +91,147 @@ public class GuiDownloadNew extends JFrame {
                 progress.start(0, "Canceled");
                 progress.setProgress(0);
             }
+        }
+
+        private boolean createOfficial(MappingVersion mapping)  throws IOException {
+            MinecraftVersion mcver = mapping.getMCVersion();
+            File target = mapping.getTarget();
+            if (target.exists())
+                target.delete();
+            if (target.exists())
+                return true; //Already exists.. nothing to do.. TODO: add way to invalidate in case something changes?
+
+            MCPVersion mcp = MCPVersions.get(mcver);
+            File mcpTarget = mcp.getTarget();
+            if (!DownloadUtils.downloadWithCache(new URL(mcp.getUrl()), mcpTarget, false, false, this.progress)) {
+                System.err.println("Could not download MCP:");
+                System.err.println("  URL:    " + mcp.getUrl());
+                System.err.println("  Target: " + mcpTarget.getAbsolutePath());
+                return false;
+            }
+
+            String entry = mcp.getMappings(mcpTarget);
+            if (entry == null) {
+                System.err.println("Failed to find mappings entry inside MCP " + mcpTarget);
+                return false;
+            }
+            byte[] mcpData = IOUtils.getZipData(mcpTarget, entry);
+            if (mcpData == null) {
+                System.err.println("Failed to read mapping data at \"" + entry +"\" in " + mcpTarget);
+                return false;
+            }
+            IMappingFile srg = IMappingFile.load(new ByteArrayInputStream(mcpData));
+
+            MappingsUrls urls = MinecraftVersions.getPGUrls(mcver);
+            if (urls == null) {
+                System.err.println("Failed to read Mappings urls from version manifest " + mcver);
+                return false;
+            }
+
+            Map<String, String> cfields = new TreeMap<>();
+            Map<String, String> cmethods = new TreeMap<>();
+            if (urls.client != null) {
+                File mappingF = new File("data/versions/" + mcver + "/client_mappings.txt");
+                if (!DownloadUtils.downloadEtag(urls.client, mappingF, false, this.progress)) {
+                    System.err.println("Could not download client_mappings:");
+                    System.err.println("  URL:    " + mcp.getUrl());
+                    System.err.println("  Target: " + mcpTarget.getAbsolutePath());
+                    return false;
+                }
+                IMappingFile pg = IMappingFile.load(mappingF);
+
+                for (IClass cls : pg.getClasses()) {
+                    IClass obf = srg.getClass(cls.getMapped());
+                    if (obf == null)
+                        continue; //PG log includes classes that are stripped by PG
+                    for (IField fld : cls.getFields()) {
+                        String name = obf.remapField(fld.getMapped());
+                        if (name.startsWith("field_"))
+                            cfields.put(name, fld.getOriginal());
+                    }
+                    for (IMethod mtd : cls.getMethods()) {
+                        String name = obf.remapMethod(mtd.getMapped(), mtd.getMappedDescriptor());
+                        if (name.startsWith("func_"))
+                            cmethods.put(name, mtd.getOriginal());
+                    }
+                }
+            }
+
+            Map<String, String> sfields = new TreeMap<>();
+            Map<String, String> smethods = new TreeMap<>();
+            if (urls.server != null) {
+                File mappingF = new File("data/versions/" + mcver + "/server_mappings.txt");
+                if (!DownloadUtils.downloadEtag(urls.client, mappingF, false, this.progress)) {
+                    System.err.println("Could not download server_mappings:");
+                    System.err.println("  URL:    " + mcp.getUrl());
+                    System.err.println("  Target: " + mcpTarget.getAbsolutePath());
+                    return false;
+                }
+                IMappingFile pg = IMappingFile.load(mappingF);
+
+                for (IClass cls : pg.getClasses()) {
+                    IClass obf = srg.getClass(cls.getMapped());
+                    if (obf == null)
+                        continue; //PG log includes classes that are stripped by PG
+                    for (IField fld : cls.getFields()) {
+                        String name = obf.remapField(fld.getMapped());
+                        if (name.startsWith("field_"))
+                            sfields.put(name, fld.getOriginal());
+                    }
+                    for (IMethod mtd : cls.getMethods()) {
+                        String name = obf.remapMethod(mtd.getMapped(), mtd.getMappedDescriptor());
+                        if (name.startsWith("func_"))
+                            smethods.put(name, mtd.getOriginal());
+                    }
+                }
+            }
+
+            String header = "searge,name,side,desc\n";
+            List<String> fields = new ArrayList<>();
+            List<String> methods = new ArrayList<>();
+            fields.add(header);
+            methods.add(header);
+
+            for (String name : cfields.keySet()) {
+                String cname = cfields.get(name);
+                String sname = sfields.get(name);
+                if (cname.equals(sname)) {
+                    fields.add(name + ',' + cname + ",2,\n");
+                    sfields.remove(name);
+                } else
+                    fields.add(name + ',' + cname + ",0,\n");
+            }
+
+            for (String name : cmethods.keySet()) {
+                String cname = cmethods.get(name);
+                String sname = smethods.get(name);
+                if (cname.equals(sname)) {
+                    methods.add(name + ',' + cname + ",2,\n");
+                    smethods.remove(name);
+                } else
+                    methods.add(name + ',' + cname + ",0,\n");
+            }
+
+            sfields.forEach((k,v) -> fields.add(k + ',' + v + ",1,\n"));
+            smethods.forEach((k,v) -> methods.add(k + ',' + v + ",1,\n"));
+
+            if (!target.getParentFile().exists())
+                target.getParentFile().mkdirs();
+
+            try (FileOutputStream fos = new FileOutputStream(target);
+                 ZipOutputStream out = new ZipOutputStream(fos)) {
+
+                out.putNextEntry(JarUtils.getStableEntry("fields.csv"));
+                for (String line : fields)
+                    out.write(line.getBytes(StandardCharsets.UTF_8));
+                out.closeEntry();
+
+                out.putNextEntry(JarUtils.getStableEntry("methods.csv"));
+                for (String line : methods)
+                    out.write(line.getBytes(StandardCharsets.UTF_8));
+                out.closeEntry();
+            }
+            return true;
         }
     }
 
@@ -130,9 +291,7 @@ public class GuiDownloadNew extends JFrame {
                         mcnode.add(new NameableDefaultMutableTreeNode("Official", l.get(0)));
                         break;
                 }
-                //node.add(new DefaultMutableTreeNode(mapver, false));
             });
-            //types.values().forEach(mcnode::add);
         }
 
         JTree list = new JTree(root);
