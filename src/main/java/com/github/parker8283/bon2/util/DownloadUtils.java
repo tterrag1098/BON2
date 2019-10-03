@@ -165,6 +165,7 @@ public class DownloadUtils {
             //So delete the output if it exists as it's invalid, and return false
             if (output.exists())
                 output.delete();
+            e.printStackTrace();
         }
 
         return false;
@@ -188,7 +189,7 @@ public class DownloadUtils {
                 read = IOUtils.copy(stream, out, listener);
             }
 
-            if (read != len) {
+            if (read != len && len != -1) {
                 output.delete();
                 throw new IOException("Failed to read all of data from " + con.getURL() + " got " + read + " expected " + len);
             }

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.prefs.Preferences;
 
 import javax.swing.*;
@@ -15,17 +16,16 @@ import javax.swing.border.EmptyBorder;
 
 import com.github.parker8283.bon2.data.BONFiles;
 import com.github.parker8283.bon2.data.GuiDownloadNew;
-import com.github.parker8283.bon2.data.MappingVersion;
-import com.github.parker8283.bon2.data.VersionLookup;
 import com.github.parker8283.bon2.gui.BrowseListener;
 import com.github.parker8283.bon2.gui.GUIProgressListener;
 import com.github.parker8283.bon2.gui.JarDropTarget;
 import com.github.parker8283.bon2.gui.LinuxBrowseListener;
-import com.github.parker8283.bon2.gui.RefreshListener;
 import com.github.parker8283.bon2.gui.SimpleRefreshListener;
 import com.github.parker8283.bon2.gui.StartListener;
 import com.github.parker8283.bon2.util.DownloadUtils;
 import com.github.parker8283.bon2.util.MCPVersions;
+import com.github.parker8283.bon2.util.MappingVersions;
+import com.github.parker8283.bon2.util.MappingVersions.MappingVersion;
 import com.github.parker8283.bon2.util.MCPVersions.MCPVersion;
 import com.github.parker8283.bon2.util.MinecraftVersions;
 import com.github.parker8283.bon2.util.OSUtils;
@@ -36,7 +36,7 @@ public class BON2Gui extends JFrame {
 
     public static final String ERROR_DIALOG_TITLE = "Error - BON2";
     private static final String PREFS_KEY_MC_VERSION = "mcVer";
-    public static final String PREFS_KEY_VERSION_MAP = "forgeVer";
+    public static final String PREFS_KEY_MAP_VERSION = "mapVer";
     public static final String PREFS_KEY_OPEN_LOC = "openLoc";
     public static final String PREFS_KEY_SAVE_LOC = "closeLoc";
 
@@ -44,13 +44,8 @@ public class BON2Gui extends JFrame {
 
     public final Preferences prefs = Preferences.userNodeForPackage(BON2Gui.class);
 
-    private JPanel contentPane;
     private JTextField inputJarLoc;
-    private JLabel lblOutput;
     private JTextField outputJarLoc;
-    private JButton btnBrouseOutput;
-    private JLabel lblMinecraftVer;
-    private JLabel lblMappingsVer;
     private JLabel lblProgressText;
     private JProgressBar masterProgress;
 
@@ -59,7 +54,7 @@ public class BON2Gui extends JFrame {
         setTitle("BON2");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setBounds(100, 100, 550, 240);
-        contentPane = new JPanel();
+        JPanel contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
 
@@ -81,14 +76,14 @@ public class BON2Gui extends JFrame {
             btnBrouseInput.addMouseListener(new LinuxBrowseListener(this, true, inputJarLoc));
         }
 
-        lblOutput = new JLabel("Output JAR");
+        JLabel lblOutput = new JLabel("Output JAR");
         lblOutput.setHorizontalAlignment(SwingConstants.CENTER);
 
         outputJarLoc = new JTextField();
         outputJarLoc.setColumns(10);
         outputJarLoc.setDropTarget(new JarDropTarget(this, path -> outputJarLoc.setText(path)));
 
-        btnBrouseOutput = new JButton("Browse");
+        JButton btnBrouseOutput = new JButton("Browse");
 
         if (OSUtils.getOS() != OSUtils.OS.Linux) {
             btnBrouseOutput.addMouseListener(new BrowseListener(this, false, outputJarLoc));
@@ -96,8 +91,10 @@ public class BON2Gui extends JFrame {
             btnBrouseOutput.addMouseListener(new LinuxBrowseListener(this, false, outputJarLoc));
         }
 
+        //======================================================================================
         // Minecraft Versions
-        lblMinecraftVer = new JLabel("Minecraft");
+        //======================================================================================
+        JLabel lblMinecraftVer = new JLabel("Minecraft");
         lblMinecraftVer.setHorizontalAlignment(SwingConstants.CENTER);
         JComboBox<MinecraftVersion> cmbMinecraftVers = new JComboBox<>();
         JButton btnMinecraftVerRefresh = new JButton("Refresh");
@@ -109,11 +106,9 @@ public class BON2Gui extends JFrame {
             cmbMinecraftVers.setSelectedItem(selected);
         };
         mcVerRefreshCallback.run();
-        if (cmbMinecraftVers.getSelectedItem() == null)
-            cmbMinecraftVers.setSelectedIndex(0);
         btnMinecraftVerRefresh.addMouseListener(new SimpleRefreshListener(mcVerRefreshCallback));
 
-        if (!comboBoxSelect(cmbMinecraftVers, prefs.get(PREFS_KEY_MC_VERSION, "")))
+        if (!comboBoxSelect(cmbMinecraftVers, prefs.get(PREFS_KEY_MC_VERSION, "")) && cmbMinecraftVers.getItemCount() > 0)
             cmbMinecraftVers.setSelectedIndex(0);
 
         MCPVersion mcpver = MCPVersions.get((MinecraftVersion)cmbMinecraftVers.getSelectedItem());
@@ -170,53 +165,64 @@ public class BON2Gui extends JFrame {
                 }
             }).start();
         });
+        //======================================================================================
 
+
+        //======================================================================================
         //Mapping Versions
-        lblMappingsVer = new JLabel("Mappings");
+        //======================================================================================
+        JLabel lblMappingsVer = new JLabel("Mappings");
         lblMappingsVer.setHorizontalAlignment(SwingConstants.CENTER);
         JComboBox<MappingVersion> cmbMappingVersions = new JComboBox<>();
-
+        JButton btnMappingVerDownload = new JButton("Download");
         JButton btnMappingVerRefresh = new JButton("Refresh");
-        RefreshListener refresh = new RefreshListener(this, cmbMappingVersions);
-        btnMappingVerRefresh.addMouseListener(refresh);
-        try {
-            VersionLookup.INSTANCE.refresh(); // make sure we've queried the json, as this will halt the main thread
-        } catch (IOException e) {
+
+        if (MappingVersions.getKnownVersions().isEmpty())
             JOptionPane.showMessageDialog(this, "Could not load MCP versions from web, mapping versions may be incomplete.", "Warning", JOptionPane.WARNING_MESSAGE);
-        }
-        refresh.mouseClicked(null);
-        if (!comboBoxSelect(cmbMappingVersions, prefs.get(PREFS_KEY_VERSION_MAP, "")))
+
+        Runnable mapVerRefreshCallback = () -> {
+            Object selected = cmbMappingVersions.getSelectedItem();
+            cmbMappingVersions.removeAllItems();
+            MappingVersions.getExistingVersions().forEach(v -> cmbMappingVersions.insertItemAt(v, 0));
+            cmbMappingVersions.setSelectedItem(selected);
+        };
+
+        mapVerRefreshCallback.run();
+        btnMappingVerRefresh.addMouseListener(new SimpleRefreshListener(mapVerRefreshCallback));
+
+        if (!comboBoxSelect(cmbMappingVersions, prefs.get(PREFS_KEY_MAP_VERSION, "")) && cmbMappingVersions.getItemCount() > 0)
             cmbMappingVersions.setSelectedIndex(0);
 
-        // Add this after previously saved value is set
+        //MappingVersion mapver = (MappingVersion)cmbMappingVersions.getSelectedItem();
+        //btnMappingVerDownload.setEnabled((mapver != null && !mapver.getTarget(BONFiles.FG3_DOWNLOAD_CACHE).exists()));
+
         cmbMappingVersions.addActionListener(e -> {
             Object selected = cmbMappingVersions.getSelectedItem();
             if (selected == null) {
-                prefs.remove(BON2Gui.PREFS_KEY_VERSION_MAP);
+                prefs.remove(BON2Gui.PREFS_KEY_MAP_VERSION);
             } else {
-                prefs.put(BON2Gui.PREFS_KEY_VERSION_MAP, selected.toString());
+                prefs.put(BON2Gui.PREFS_KEY_MAP_VERSION, selected.toString());
             }
         });
 
-        JButton btnMappingVerDownload = new JButton("Download");
         btnMappingVerDownload.addActionListener(e -> {
-            GuiDownloadNew gui;
-            try {
-                gui = new GuiDownloadNew(refresh);
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(BON2Gui.this, ex, "Could not load mappings", JOptionPane.ERROR_MESSAGE);
+            Map<MinecraftVersion, List<MappingVersion>> data = MappingVersions.getKnownVersions();
+            if (data.isEmpty()) {
+                JOptionPane.showMessageDialog(BON2Gui.this, "No known Mapping Versions, check console log for details, or check your internet connection.", "Could not load mappings", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+            GuiDownloadNew gui = new GuiDownloadNew(mapVerRefreshCallback, data);
             gui.setLocation(getLocation());
             gui.setVisible(true);
         });
+        //======================================================================================
 
         masterProgress = new JProgressBar();
 
         lblProgressText = new JLabel("Ready!");
 
         JButton btnStart = new JButton("Go!");
-        btnStart.addMouseListener(new StartListener(this, inputJarLoc, outputJarLoc, cmbMappingVersions, lblProgressText, masterProgress));
+        btnStart.addMouseListener(new StartListener(this, inputJarLoc, outputJarLoc, cmbMinecraftVers, cmbMappingVersions, lblProgressText, masterProgress));
 
         lblProgressText.setHorizontalAlignment(SwingConstants.CENTER);
 

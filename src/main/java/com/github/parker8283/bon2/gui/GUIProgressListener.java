@@ -4,9 +4,10 @@ import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
+import com.github.parker8283.bon2.cli.CLIProgressListener;
 import com.github.parker8283.bon2.data.IProgressListener;
 
-public class GUIProgressListener implements IProgressListener {
+public class GUIProgressListener extends CLIProgressListener {
     private JLabel progressLabel;
     private JProgressBar progressBar;
 
@@ -17,6 +18,7 @@ public class GUIProgressListener implements IProgressListener {
 
     @Override
     public void start(final int max, final String label) {
+        super.start(max, label);
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -34,6 +36,7 @@ public class GUIProgressListener implements IProgressListener {
 
     @Override
     public void startWithoutProgress(final String label) {
+        super.startWithoutProgress(label);
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -45,6 +48,7 @@ public class GUIProgressListener implements IProgressListener {
 
     @Override
     public void setProgress(final int value) {
+        super.setProgress(value);
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -55,6 +59,7 @@ public class GUIProgressListener implements IProgressListener {
 
     @Override
     public void setMax(final int max) {
+        super.setMax(max);
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -65,6 +70,7 @@ public class GUIProgressListener implements IProgressListener {
 
     @Override
     public void setLabel(String label) {
+        super.setLabel(label);
         SwingUtilities.invokeLater(() -> progressLabel.setText(getFormatedText(label)));
     }
 

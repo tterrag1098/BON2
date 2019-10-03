@@ -3,13 +3,9 @@ package com.github.parker8283.bon2.data;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.nio.channels.ClosedByInterruptException;
-import java.nio.file.Files;
 import java.text.DateFormatSymbols;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import javax.swing.*;
@@ -19,138 +15,70 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import com.github.parker8283.bon2.data.VersionJson.MappingsJson;
 import com.github.parker8283.bon2.gui.GUIProgressListener;
-import com.github.parker8283.bon2.gui.RefreshListener;
 import com.github.parker8283.bon2.util.BONUtils;
+import com.github.parker8283.bon2.util.DownloadUtils;
+import com.github.parker8283.bon2.util.MappingVersions;
+import com.github.parker8283.bon2.util.MappingVersions.MappingVersion;
+
+import net.minecraftforge.srgutils.MinecraftVersion;
 
 public class GuiDownloadNew extends JFrame {
-
-    private static final String MAPPINGS_URL_SNAPSHOT = "http://export.mcpbot.bspk.rs/mcp_snapshot/%1$s-%2$s/mcp_snapshot-%1$s-%2$s.zip";
-    private static final String MAPPINGS_URL_STABLE = "http://export.mcpbot.bspk.rs/mcp_stable/%1$s-%2$s/mcp_stable-%1$s-%2$s.zip";
-
-    private static class MappingListEntry {
-        public final boolean stable;
-        public final int version;
-        public final String url;
-
-        public MappingListEntry(boolean stable, int version, String url) {
-            this.stable = stable;
-            this.version = version;
-            this.url = url;
-        }
-
-        @Override
-        public String toString() {
-            return (stable ? "stable" : "snapshot") + "_" + version;
-        }
-    }
-
-    private static class ComparableVersion implements Comparable<ComparableVersion> {
-
-        private final String version;
-        private final int[] vdata;
-
-        public ComparableVersion(String version) {
-            this.version = version;
-            this.vdata = Arrays.stream(version.split("\\.")).mapToInt(Integer::parseInt).toArray();
-        }
-
-        public String version() {
-            return version;
-        }
-
-        @Override
-        public String toString() {
-            return version();
-        }
-
-        @Override
-        public int compareTo(ComparableVersion o) {
-            int idx = 0;
-            while (idx < vdata.length) {
-                if (idx >= o.vdata.length) {
-                    return -1;
-                }
-                int comp = Integer.compare(o.vdata[idx], vdata[idx]);
-                if (comp == 0) {
-                    idx++;
-                } else {
-                    return comp;
-                }
-            }
-            return 0;
-        }
-    }
-
+    private static final String[] MONTHS = new DateFormatSymbols().getMonths();
     private class DownloadMappingsTask implements Runnable {
 
-        private final Queue<MappingListEntry> urls;
+        private final Queue<MappingVersion> versions;
         private final IProgressListener progress;
 
-        public DownloadMappingsTask(Collection<MappingListEntry> urls, IProgressListener progress) {
-            this.urls = new LinkedList<>(urls);
+        public DownloadMappingsTask(Collection<MappingVersion> urls, IProgressListener progress) {
+            this.versions = new LinkedList<>(urls);
             this.progress = progress;
         }
 
         @Override
         public void run() {
-            progress.start(urls.size(), "Downloading");
-            int finished = 0;
-            while (!urls.isEmpty()) {
-                MappingListEntry entry = urls.poll();
-                progress.setLabel("Downloading: " + entry.toString());
-                try (InputStream in = new URL(entry.url).openStream()) {
-                    File rootFolder = BONFiles.OCEANLABS_MCP_FOLDER;
-                    File temp = rootFolder.toPath()
-                            .resolve(entry.stable ? "mcp_stable" : "mcp_snapshot")
-                            .resolve(Integer.toString(entry.version))
-                            .resolve("temp.zip")
-                            .toFile();
-
-                    File folder = temp.getParentFile();
-                    if (folder.exists()) {
-                        // Wipe old CSVs
-                        for (File file : folder.listFiles((dir, name) -> name.endsWith(".csv"))) {
-                            file.delete();
+            try {
+                progress.start(versions.size(), "Downloading");
+                int finished = 0;
+                while (!versions.isEmpty()) {
+                    MappingVersion entry = versions.poll();
+                    //progress.setLabel("Downloading: " + entry.toString());
+                    try {
+                        if (entry.getType() == MappingVersions.Type.OFFICIAL) {
+                            //TODO: Download version manifest, and mapping file, and generate mappings
+                        } else {
+                            File target = entry.getTarget(BONFiles.FG3_DOWNLOAD_CACHE);
+                            if (!DownloadUtils.downloadWithCache(new URL(entry.getUrl()), target, false, false, this.progress)) {
+                                JOptionPane.showMessageDialog(GuiDownloadNew.this, "Failed to download " + entry.getUrl(), "Error downloading mappings", JOptionPane.ERROR_MESSAGE);
+                                versions.clear();
+                                progress.start(0, "Error");
+                                progress.setProgress(0);
+                            }
                         }
-                    } else {
-                        folder.mkdirs();
+                    } catch (IOException e) {
+                        JOptionPane.showMessageDialog(GuiDownloadNew.this, e, "Error downloading mappings", JOptionPane.ERROR_MESSAGE);
+                        versions.clear();
+                        progress.start(0, "Error");
+                        progress.setProgress(0);
+                        return;
                     }
-
-                    if (temp.exists()) {
-                        System.err.println("Temporary .zip already exists, deleting...");
-                        temp.delete();
-                    }
-                    Files.copy(in, temp.toPath());
-                    Thread.sleep(1);
-                    BONUtils.extractZip(temp);
-                    temp.delete();
                     Thread.sleep((finished + 1) % 10 == 0 ? 2000L : 1); // plz no ddos
-                } catch (InterruptedException | ClosedByInterruptException e) {
-                    progress.start(0, "Canceled");
-                    progress.setProgress(0);
-                    return;
-                } catch (IOException e) {
-                    JOptionPane.showMessageDialog(GuiDownloadNew.this, e, "Error downloading mappings", JOptionPane.ERROR_MESSAGE);
-                    urls.clear();
-                    progress.start(0, "Error");
-                    progress.setProgress(0);
-                    return;
+                    progress.setProgress(++finished);
                 }
-                progress.setProgress(++finished);
+                progress.setLabel("Done!");
+                GuiDownloadNew.this.dispose();
+            } catch (InterruptedException e) {
+                progress.start(0, "Canceled");
+                progress.setProgress(0);
             }
-            progress.setLabel("Done!");
-            GuiDownloadNew.this.dispose();
         }
     }
 
-    private final RefreshListener refresh;
+    private final Runnable refresh;
 
     private Thread downloadTask;
 
-    public GuiDownloadNew(RefreshListener refresh) throws IOException {
-
+    public GuiDownloadNew(Runnable refresh, final Map<MinecraftVersion, List<MappingVersion>> data) {
         this.refresh = refresh;
 
         setBounds(100, 100, 540, 500);
@@ -158,58 +86,53 @@ public class GuiDownloadNew extends JFrame {
         setTitle("Mappings Downloader");
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-        VersionLookup.INSTANCE.refresh();
-
-        VersionJson data = VersionLookup.INSTANCE.getVersions();
-        if (data == null || data.getVersions().isEmpty()) {
-            throw new IOException("Version list empty/missing!");
-        }
-
-        TreeMap<ComparableVersion, MappingsJson> mappings = new TreeMap<>();
-        for (String v : data.getVersions()) {
-            mappings.put(new ComparableVersion(v), data.getMappings(v));
-        }
-
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("Minecraft Versions");
+        final List<MinecraftVersion> sortedVersions = data.keySet().stream().sorted(Collections.reverseOrder()).collect(Collectors.toList());
 
-        for (Entry<ComparableVersion, MappingsJson> e : mappings.entrySet()) {
-            DefaultMutableTreeNode mcver = new DefaultMutableTreeNode(e.getKey());
-            root.add(mcver);
-            if (e.getValue().getStables().length > 0) {
-                DefaultMutableTreeNode stables = new DefaultMutableTreeNode("Stable");
-                mcver.add(stables);
-                int[] versions = e.getValue().getStables();
-                Arrays.sort(versions);
-                for (int i = versions.length - 1; i >= 0; i--) {
-                    int stable = versions[i];
-                    stables.add(new DefaultMutableTreeNode(new MappingListEntry(true, stable, String.format(MAPPINGS_URL_STABLE, stable, e.getKey())), false));
+        for (MinecraftVersion mcver : sortedVersions) {
+            DefaultMutableTreeNode mcnode = new DefaultMutableTreeNode(mcver.toString());
+            root.add(mcnode);
+            Map<MappingVersions.Type, List<MappingVersion>> types = new EnumMap<>(MappingVersions.Type.class);
+            for (MappingVersion mapver : data.get(mcver))
+                types.computeIfAbsent(mapver.getType(), t -> new ArrayList<>()).add(mapver);
+
+            types.forEach((t,l) -> {
+                switch (t) {
+                    case STABLE:
+                        DefaultMutableTreeNode stables = new DefaultMutableTreeNode("Stable");
+                        mcnode.add(stables);
+                        l.stream().sorted(Collections.reverseOrder()).forEach(e -> stables.add(new NameableDefaultMutableTreeNode(e.getVersion() + "", e)));
+                        break;
+                    case SNAPSHOT:
+                        DefaultMutableTreeNode snaps = new DefaultMutableTreeNode("Snapshot");
+                        mcnode.add(snaps);
+
+                        Map<Integer, Map<Integer, List<MappingVersion>>> versionsUnsorted = l.stream()
+                                .collect(Collectors.groupingBy(e -> e.getVersion() / 10000, Collectors.groupingBy(e -> (e.getVersion() / 100) % 100)));
+
+                        Map<Integer, Map<Integer, List<MappingVersion>>> versions = new TreeMap<>(Collections.reverseOrder());
+                        versions.putAll(versionsUnsorted);
+
+                        versions.forEach((year, months) -> {
+                            Map<Integer, List<MappingVersion>> sorted = new TreeMap<>(Collections.reverseOrder());
+                            sorted.putAll(months);
+
+                            DefaultMutableTreeNode yearNode = new DefaultMutableTreeNode(year);
+                            sorted.forEach((month, list) -> {
+                                DefaultMutableTreeNode monthNode = new DefaultMutableTreeNode(MONTHS[month - 1]);
+                                list.stream().sorted(Collections.reverseOrder()).forEach(m -> monthNode.add(new NameableDefaultMutableTreeNode(m.getVersion() + "", m)));
+                                yearNode.add(monthNode);
+                            });
+                            snaps.add(yearNode);
+                        });
+                        break;
+                    case OFFICIAL:
+                        mcnode.add(new NameableDefaultMutableTreeNode("Official", l.get(0)));
+                        break;
                 }
-            }
-            DefaultMutableTreeNode snaps = new DefaultMutableTreeNode("Snapshot");
-            mcver.add(snaps);
-            int[] snapids = e.getValue().getSnapshots();
-
-            Map<Integer, Map<Integer, List<String>>> versionsUnsorted = Arrays.stream(snapids)
-                    .mapToObj(Integer::toString)
-                    .collect(Collectors.groupingBy(s -> Integer.parseInt(s.substring(0, 4)), Collectors.groupingBy(s -> Integer.parseInt(s.substring(4, 6)))));
-
-            Comparator<Integer> reverseCompare = (i1, i2) -> Integer.compare(i2, i1);
-            Map<Integer, Map<Integer, List<String>>> versions = new TreeMap<>(reverseCompare);
-            versions.putAll(versionsUnsorted);
-
-            for (Entry<Integer, Map<Integer, List<String>>> byYear : versions.entrySet()) {
-                Map<Integer, List<String>> sorted = new TreeMap<>(reverseCompare);
-                sorted.putAll(byYear.getValue());
-                DefaultMutableTreeNode year = new DefaultMutableTreeNode(byYear.getKey());
-                for (Entry<Integer, List<String>> byMonth : sorted.entrySet()) {
-                    DefaultMutableTreeNode month = new DefaultMutableTreeNode(new DateFormatSymbols().getMonths()[byMonth.getKey() - 1]);
-                    for (String v : byMonth.getValue()) {
-                        month.add(new DefaultMutableTreeNode(new MappingListEntry(false, Integer.parseInt(v), String.format(MAPPINGS_URL_SNAPSHOT, v, e.getKey())), false));
-                    }
-                    year.add(month);
-                }
-                snaps.add(year);
-            }
+                //node.add(new DefaultMutableTreeNode(mapver, false));
+            });
+            //types.values().forEach(mcnode::add);
         }
 
         JTree list = new JTree(root);
@@ -260,8 +183,8 @@ public class GuiDownloadNew extends JFrame {
 
         // Set download tasks
         buttonDownload.addActionListener(e -> {
-            List<MappingListEntry> selected = getSelectedRecursive(list).stream()
-                    .map(o -> (MappingListEntry) ((DefaultMutableTreeNode)o).getUserObject())
+            List<MappingVersion> selected = getSelectedRecursive(list).stream()
+                    .map(o -> (MappingVersion)((DefaultMutableTreeNode)o).getUserObject())
                     .collect(Collectors.toList());
 
             int confirmed = 0;
@@ -273,34 +196,27 @@ public class GuiDownloadNew extends JFrame {
             }
         });
         buttonDownloadLatest.addActionListener(evt -> {
-           Entry<ComparableVersion, MappingsJson> e = mappings.firstEntry();
-           startDownloadTask(Collections.singletonList(jsonToEntry(false, e.getValue(), e.getKey().version, OptionalInt.empty())), lblProgressText, progressBar, buttonCancel);
+           List<MappingVersion> lst = data.get(sortedVersions.get(0));
+           startDownloadTask(Collections.singletonList(lst.get(lst.size() - 1)), lblProgressText, progressBar, buttonCancel);
         });
         buttonDownloadAllLatest.addActionListener(evt -> {
-            List<MappingListEntry> entries = new ArrayList<>();
-
-            // Do all stables, then all snapshots
-            for (Entry<ComparableVersion, MappingsJson> e : mappings.entrySet()) {
-                entries.add(jsonToEntry(true,  e.getValue(), e.getKey().version, OptionalInt.empty()));
+            List<MappingVersion> entries = new ArrayList<>();
+            for (MinecraftVersion mcver : sortedVersions) {
+                EnumSet<MappingVersions.Type> missing = EnumSet.allOf(MappingVersions.Type.class);
+                data.get(mcver).stream().sorted(Collections.reverseOrder()).forEach(e -> {
+                    MappingVersions.Type type = e.getType();
+                    if (missing.contains(type)) {
+                        entries.add(e);
+                        missing.remove(type);
+                    }
+                });
             }
-            for (Entry<ComparableVersion, MappingsJson> e : mappings.entrySet()) {
-                entries.add(jsonToEntry(false, e.getValue(), e.getKey().version, OptionalInt.empty()));
-            }
-
-            entries.remove(null);
             startDownloadTask(entries, lblProgressText, progressBar, buttonCancel);
         });
         buttonDownloadSpecific.addActionListener(evt -> {
-            String text = textFieldVersion.getText();
-            boolean stable = text.startsWith("stable");
-            int version = Integer.parseInt(text.substring(stable ? 7 : 9));
-            MappingListEntry entry = null;
-            for (Entry<ComparableVersion, MappingsJson> e : mappings.entrySet()) {
-                entry = jsonToEntry(stable, e.getValue(), e.getKey().version, OptionalInt.of(version));
-                if (entry != null) break;
-            }
-            if (entry != null) {
-                startDownloadTask(Collections.singletonList(entry), lblProgressText, progressBar, buttonCancel);
+            MappingVersion ver = MappingVersions.getFromString(textFieldVersion.getText());
+            if (ver != null) {
+                startDownloadTask(Collections.singletonList(ver), lblProgressText, progressBar, buttonCancel);
             } else {
                 lblProgressText.setText("Invalid mappings version");
             }
@@ -323,8 +239,10 @@ public class GuiDownloadNew extends JFrame {
                         .addComponent(buttonDownloadAllLatest, GroupLayout.DEFAULT_SIZE, 160, 200)
                         .addComponent(textFieldVersion, GroupLayout.DEFAULT_SIZE, 160, 200)
                         .addComponent(lblEnterVersion, GroupLayout.DEFAULT_SIZE, 160, 200)
-                        .addComponent(buttonDownloadSpecific, GroupLayout.DEFAULT_SIZE, 160, 200))
-                    .addContainerGap())
+                        .addComponent(buttonDownloadSpecific, GroupLayout.DEFAULT_SIZE, 160, 200)
+                    )
+                    .addContainerGap()
+                )
         );
         groupLayout.setVerticalGroup(
             groupLayout.createParallelGroup(Alignment.LEADING)
@@ -349,8 +267,11 @@ public class GuiDownloadNew extends JFrame {
                             .addPreferredGap(ComponentPlacement.RELATED)
                             .addComponent(progressBar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                             .addPreferredGap(ComponentPlacement.RELATED)
-                            .addComponent(buttonCancel)))
-                    .addContainerGap())
+                            .addComponent(buttonCancel)
+                        )
+                    )
+                    .addContainerGap()
+                )
         );
         getContentPane().setLayout(groupLayout);
     }
@@ -358,34 +279,13 @@ public class GuiDownloadNew extends JFrame {
     @Override
     public void dispose() {
         super.dispose();
-        this.refresh.mouseClicked(null);
+        this.refresh.run();
     }
 
-    private void startDownloadTask(Collection<MappingListEntry> entries, JLabel lbl, JProgressBar prog, JButton cancel) {
+    private void startDownloadTask(Collection<MappingVersion> entries, JLabel lbl, JProgressBar prog, JButton cancel) {
         cancel.setEnabled(true);
         downloadTask = new Thread(new DownloadMappingsTask(entries, new GUIProgressListener(lbl, prog)), "Mappings Downloader");
         downloadTask.start();
-    }
-
-    /**
-     * @param version If absent, returns the latest.
-     */
-    private MappingListEntry jsonToEntry(boolean stable, MappingsJson json, String mcver, OptionalInt version) {
-        int[] allversions = stable ? json.getStables() : json.getSnapshots();
-        if (allversions.length > 0) {
-            int v = version.orElse(allversions[0]);
-            if (arrayContains(allversions, v)) {
-                return new MappingListEntry(stable, v, String.format(stable ? MAPPINGS_URL_STABLE : MAPPINGS_URL_SNAPSHOT, Integer.toString(v), mcver));
-            }
-        }
-        return null;
-    }
-
-    private static boolean arrayContains(final int[] array, final int value) {
-        for (int n : array)
-            if (n == value)
-                return true;
-        return false;
     }
 
     private static List<Object> getSelectedRecursive(JTree tree) {
@@ -409,4 +309,18 @@ public class GuiDownloadNew extends JFrame {
     }
 
     private static final long serialVersionUID = -5671034374840427145L;
+
+    private static class NameableDefaultMutableTreeNode extends DefaultMutableTreeNode {
+        private static final long serialVersionUID = -7895415303737908716L;
+        private final String name;
+        public NameableDefaultMutableTreeNode(String name, Object obj) {
+            super(obj, false);
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return this.name;
+        }
+    }
 }

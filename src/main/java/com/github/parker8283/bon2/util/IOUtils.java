@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.reflect.Type;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -70,6 +71,11 @@ public class IOUtils {
     }
 
     public static <T> T loadJson(File target, Class<T> clz) throws IOException {
+        try (InputStream in = new FileInputStream(target)) {
+            return GSON.fromJson(new InputStreamReader(in), clz);
+        }
+    }
+    public static <T> T loadJson(File target, Type clz) throws IOException {
         try (InputStream in = new FileInputStream(target)) {
             return GSON.fromJson(new InputStreamReader(in), clz);
         }
