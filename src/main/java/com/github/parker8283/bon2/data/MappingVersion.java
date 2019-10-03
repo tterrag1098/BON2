@@ -12,7 +12,7 @@ public class MappingVersion implements Comparable<MappingVersion> {
             throw new IllegalArgumentException("Invalid argument: version - Is Null");
         if (srgs == null)
             throw new IllegalArgumentException("Invalid argument: srgs - Is Null");
-        if (srgs.exists() && srgs.isDirectory())
+        if (!srgs.exists() || !srgs.isDirectory())
             throw new IllegalArgumentException("Invalid argument: srgs - Folder for srgs does not exist or is not a directory.");
 
         this.version = version;

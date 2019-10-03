@@ -60,9 +60,9 @@ public class BON2 {
                 new FileNotFoundException(inputJar).printStackTrace();
                 System.exit(1);
             }
-            
+
             VersionLookup.INSTANCE.refresh();
-            
+
             List<MappingVersion> mappings = BONUtils.buildValidMappings();
             MappingVersion mapping = null;
             for (MappingVersion m : mappings) {
@@ -71,20 +71,20 @@ public class BON2 {
                     break;
                 }
             }
-            
+
             if (mapping == null) {
                 System.err.println("The provided mappingsVer are invalid. The mappings must exist in your Gradle cache. BON2 will match the first version that contains the passed string.");
                 new InvalidMappingsVersionException(mappingsVer).printStackTrace();
                 System.exit(1);
             }
-            
+
             IErrorHandler errorHandler = new CLIErrorHandler();
 
             log(VERSION);
             log("Input JAR:       " + inputJar);
             log("Output JAR:      " + outputJar);
             log("Mappings:        " + mappingsVer);
-            log("Gradle User Dir: " + BONFiles.USER_GRADLE_FOLDER);
+            log("Gradle User Dir: " + BONFiles.GRADLE_CACHES_FOLDER);
 
             try {
                 BON2Impl.remap(new File(inputJar), new File(outputJar), mapping, errorHandler, new CLIProgressListener());

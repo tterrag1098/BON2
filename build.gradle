@@ -10,15 +10,17 @@ plugins {
 
 version = '2.4.0.' + (System.getenv('BUILD_NUMBER') ?: 'CUSTOM')
 group = 'com.github.parker8283'
-archivesBaseName = 'BON'
+targetCompatibility = sourceCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
 
 repositories {
     mavenCentral()
+    maven{ url = 'https://files.minecraftforge.net/maven/'}
 }
 
 dependencies {
 	compile 'com.google.code.gson:gson:2.8.5'
     compile 'net.sf.jopt-simple:jopt-simple:5.0.4'
+    compile 'net.minecraftforge:srgutils:0.2.4'
 	compile 'org.ow2.asm:asm:7.2'
     compile 'org.ow2.asm:asm-tree:7.2'
 }

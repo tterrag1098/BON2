@@ -20,7 +20,7 @@ public class GUIProgressListener implements IProgressListener {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                progressLabel.setText(label);
+                progressLabel.setText(getFormatedText(label));
                 if(progressBar.isIndeterminate()) {
                     progressBar.setIndeterminate(false);
                 }
@@ -37,7 +37,7 @@ public class GUIProgressListener implements IProgressListener {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                progressLabel.setText(label);
+                progressLabel.setText(getFormatedText(label));
                 progressBar.setIndeterminate(true);
             }
         });
@@ -62,9 +62,13 @@ public class GUIProgressListener implements IProgressListener {
             }
         });
     }
-    
+
     @Override
     public void setLabel(String label) {
-        SwingUtilities.invokeLater(() -> progressLabel.setText(label));
+        SwingUtilities.invokeLater(() -> progressLabel.setText(getFormatedText(label)));
+    }
+
+    private String getFormatedText(String value) {
+        return "<html>" + value + "</html>"; //This prevents the window from being resized when the text is long.
     }
 }
