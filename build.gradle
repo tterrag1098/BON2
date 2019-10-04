@@ -21,7 +21,7 @@ dependencies {
 	compile 'com.google.code.gson:gson:2.8.5'
     compile 'net.sf.jopt-simple:jopt-simple:5.0.4'
     compile 'net.minecraftforge:srgutils:0.2.4'
-	compile 'org.ow2.asm:asm:7.2'
+    compile 'org.ow2.asm:asm:7.2'
     compile 'org.ow2.asm:asm-commons:7.2'
     compile 'org.ow2.asm:asm-tree:7.2'
 }

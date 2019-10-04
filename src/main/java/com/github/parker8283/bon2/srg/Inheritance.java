@@ -37,7 +37,7 @@ public class Inheritance {
         boolean success = true;
         for (IClass cls : classes.values()) {
             progress.setProgress(idx++);
-            success = success && bake(cls);
+            success = bake(cls) && success;
         }
 
         return success;
@@ -72,7 +72,7 @@ public class Inheritance {
             return true;
 
         if (!"java/lang/Object".equals(cls.name) && cls.parent != null)
-            if (bake(classes.get(cls.parent)))
+            if (!bake(classes.get(cls.parent)))
                 return false;
 
         for (String intf : cls.interfaces)
@@ -104,9 +104,9 @@ public class Inheritance {
 
             while (!que.isEmpty()) {
                 IClass c = que.poll();
-                if (cls.parent != null)
-                    addQueue.accept(cls.parent);
-                cls.interfaces.forEach(addQueue::accept);
+                if (c.parent != null)
+                    addQueue.accept(c.parent);
+                c.interfaces.forEach(addQueue::accept);
 
                 IMethod m = c.methods.get(mtd.name + mtd.desc);
                 if (m == null || (m.access & (Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL | Opcodes.ACC_STATIC)) != 0)
@@ -126,6 +126,7 @@ public class Inheritance {
         private final String name;
         private final int access;
         private final String parent;
+        private final String string;
         private final Set<String> interfaces = new HashSet<>();
         private final Map<String, IField> fields = new HashMap<>();
         private final Map<String, IMethod> methods = new HashMap<>();
@@ -135,6 +136,11 @@ public class Inheritance {
             this.name = cls.name;
             this.access = cls.access;
             this.parent = cls.superName;
+            this.string = toAccessString(this.access) + " " +
+                   ((this.access & Opcodes.ACC_INTERFACE) != 0 ? "interface " : "class ") +
+                   ((this.access & Opcodes.ACC_ANNOTATION) != 0 ? "@" : "") +
+                   this.name;
+
             if (cls.interfaces != null)
                 this.interfaces.addAll(cls.interfaces);
 
@@ -154,6 +160,11 @@ public class Inheritance {
             other.fields.forEach((k,v) -> this.fields.putIfAbsent(k, v));
             other.methods.forEach((k,v) -> this.methods.putIfAbsent(k, v));
         }
+
+        @Override
+        public String toString() {
+            return string;
+        }
     }
 
     private static class IField {
@@ -161,6 +172,7 @@ public class Inheritance {
         private final String name;
         private final int access;
         private final String desc;
+        private final String string;
         private IField root;
 
         IField(IClass parent, FieldNode field) {
@@ -168,6 +180,12 @@ public class Inheritance {
             this.name = field.name;
             this.access = field.access;
             this.desc = field.desc;
+            this.string = toAccessString(this.access) + " " + this.parent.name + "." + this.name;
+        }
+
+        @Override
+        public String toString() {
+            return string;
         }
     }
 
@@ -176,6 +194,7 @@ public class Inheritance {
         private final String name;
         private final int access;
         private final String desc;
+        private final String string;
         private IMethod root;
 
         IMethod(IClass parent, MethodNode method) {
@@ -183,6 +202,22 @@ public class Inheritance {
             this.name = method.name;
             this.access = method.access;
             this.desc = method.desc;
+            this.string = toAccessString(this.access) + " " + this.parent.name + "." + this.name + this.desc;
         }
+
+        @Override
+        public String toString() {
+            return string;
+        }
+    }
+
+    private static String toAccessString(int access) {
+        String ret = "";
+        if ((access & Opcodes.ACC_PUBLIC   ) != 0) ret += "public ";
+        if ((access & Opcodes.ACC_PROTECTED) != 0) ret += "protected ";
+        if ((access & Opcodes.ACC_PRIVATE  ) != 0) ret += "private ";
+        if ((access & Opcodes.ACC_FINAL    ) != 0) ret += "final ";
+        if ((access & Opcodes.ACC_STATIC   ) != 0) ret += "static ";
+        return ret.trim();
     }
 }
