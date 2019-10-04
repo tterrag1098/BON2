@@ -5,7 +5,6 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
 import com.github.parker8283.bon2.cli.CLIProgressListener;
-import com.github.parker8283.bon2.data.IProgressListener;
 
 public class GUIProgressListener extends CLIProgressListener {
     private JLabel progressLabel;

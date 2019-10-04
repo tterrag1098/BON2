@@ -11,8 +11,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.github.parker8283.bon2.data.BONFiles;
 import com.github.parker8283.bon2.util.MinecraftVersions.Manifest.Version;
-import com.github.parker8283.bon2.util.MinecraftVersions.VersionConfig.Download;
 
 import net.minecraftforge.srgutils.MinecraftVersion;
 
@@ -35,39 +35,25 @@ public class MinecraftVersions {
         return knownVersions;
     }
 
-    public static MappingsUrls getPGUrls(MinecraftVersion version) {
-        File versionF = new File("data/versions/" + version + "/version.json");
+    public static Map<String, URL> getDownloadUrls(MinecraftVersion version) {
+        File versionF = new File(BONFiles.FG3_MC_CACHE, version + "/version.json");
         URL url = versionUrls.get(version);
         if (url == null) {
             System.out.println("Unknown version specific url for Minecraft Version: " + version);
-            return null;
+            return Collections.emptyMap();
         }
         try {
             if (!DownloadUtils.downloadEtag(url, versionF, false)) {
                 System.out.println("Failed to download version configuration from: " + url);
-                return null;
+                return Collections.emptyMap();
             }
             VersionConfig cfg = IOUtils.loadJson(versionF, VersionConfig.class);
             if (cfg.downloads == null) {
                 System.out.println("Failed to find mapping url, version config missing download section" + url);
-                return null;
+                return Collections.emptyMap();
             }
 
-            MappingsUrls ret = new MappingsUrls();
-            Download dep = cfg.downloads.get("client_mappings");
-            if (dep == null || dep.url == null)
-                System.out.println("Failed to find mapping url, version \"" + version + "\" config missing download info for \"client_mappings\"");
-            else
-                ret.client = dep.url;
-
-
-            dep = cfg.downloads.get("server_mappings");
-            if (dep == null || dep.url == null)
-                System.out.println("Failed to find mapping url, version \"" + version + "\" config missing download info for \"server_mappings\"");
-            else
-                ret.server = dep.url;
-
-            return ret.client == null && ret.server == null ? null : ret;
+            return cfg.downloads.entrySet().stream().filter(e -> e.getValue() != null && e.getValue().url != null).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().url));
         } catch (IOException e) {
             System.out.println("Failed to download version configuration from: " + url);
             e.printStackTrace();
@@ -76,7 +62,7 @@ public class MinecraftVersions {
     }
 
     private static Set<MinecraftVersion> findFromLauncherManifest() {
-        File manifestF = new File("data/version_manifest.json");
+        File manifestF = new File(BONFiles.FG3_MC_CACHE, "manifest.json");
         try {
             if (!DownloadUtils.downloadEtag(new URL(MANIFEST_URL), manifestF, false)) {
                 System.out.println("Failed to download Minecraft Version manifest from: " + MANIFEST_URL);
@@ -120,10 +106,5 @@ public class MinecraftVersions {
         public static class Download {
             public URL url;
         }
-    }
-
-    public static class MappingsUrls {
-        public URL client;
-        public URL server;
     }
 }

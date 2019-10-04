@@ -29,7 +29,6 @@ import com.github.parker8283.bon2.util.MCPVersions.MCPVersion;
 import com.github.parker8283.bon2.util.MappingVersions;
 import com.github.parker8283.bon2.util.MappingVersions.MappingVersion;
 import com.github.parker8283.bon2.util.MinecraftVersions;
-import com.github.parker8283.bon2.util.MinecraftVersions.MappingsUrls;
 
 import net.minecraftforge.srgutils.IMappingFile;
 import net.minecraftforge.srgutils.IMappingFile.IClass;
@@ -122,17 +121,18 @@ public class GuiDownloadNew extends JFrame {
             }
             IMappingFile srg = IMappingFile.load(new ByteArrayInputStream(mcpData));
 
-            MappingsUrls urls = MinecraftVersions.getPGUrls(mcver);
-            if (urls == null) {
+            Map<String, URL> urls = MinecraftVersions.getDownloadUrls(mcver);
+            if (urls.isEmpty()) {
                 System.err.println("Failed to read Mappings urls from version manifest " + mcver);
                 return false;
             }
 
             Map<String, String> cfields = new TreeMap<>();
             Map<String, String> cmethods = new TreeMap<>();
-            if (urls.client != null) {
-                File mappingF = new File("data/versions/" + mcver + "/client_mappings.txt");
-                if (!DownloadUtils.downloadEtag(urls.client, mappingF, false, this.progress)) {
+            URL client_mappings = urls.get("client_mappings");
+            if (client_mappings != null) {
+                File mappingF = new File(BONFiles.FG3_MC_CACHE, mcver + "/client_mappings.txt");
+                if (!DownloadUtils.downloadEtag(client_mappings, mappingF, false, this.progress)) {
                     System.err.println("Could not download client_mappings:");
                     System.err.println("  URL:    " + mcp.getUrl());
                     System.err.println("  Target: " + mcpTarget.getAbsolutePath());
@@ -159,9 +159,10 @@ public class GuiDownloadNew extends JFrame {
 
             Map<String, String> sfields = new TreeMap<>();
             Map<String, String> smethods = new TreeMap<>();
-            if (urls.server != null) {
-                File mappingF = new File("data/versions/" + mcver + "/server_mappings.txt");
-                if (!DownloadUtils.downloadEtag(urls.client, mappingF, false, this.progress)) {
+            URL server_mappings = urls.get("server_mappings");
+            if (server_mappings != null) {
+                File mappingF = new File(BONFiles.FG3_MC_CACHE, mcver + "/server_mappings.txt");
+                if (!DownloadUtils.downloadEtag(server_mappings, mappingF, false, this.progress)) {
                     System.err.println("Could not download server_mappings:");
                     System.err.println("  URL:    " + mcp.getUrl());
                     System.err.println("  Target: " + mcpTarget.getAbsolutePath());

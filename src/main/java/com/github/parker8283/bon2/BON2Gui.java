@@ -5,8 +5,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Predicate;
 import java.util.prefs.Preferences;
 
 import javax.swing.*;
@@ -22,6 +25,7 @@ import com.github.parker8283.bon2.gui.JarDropTarget;
 import com.github.parker8283.bon2.gui.LinuxBrowseListener;
 import com.github.parker8283.bon2.gui.SimpleRefreshListener;
 import com.github.parker8283.bon2.gui.StartListener;
+import com.github.parker8283.bon2.util.BONUtils;
 import com.github.parker8283.bon2.util.DownloadUtils;
 import com.github.parker8283.bon2.util.MCPVersions;
 import com.github.parker8283.bon2.util.MappingVersions;
@@ -112,7 +116,13 @@ public class BON2Gui extends JFrame {
             cmbMinecraftVers.setSelectedIndex(0);
 
         MCPVersion mcpver = MCPVersions.get((MinecraftVersion)cmbMinecraftVers.getSelectedItem());
-        btnMinecraftVerDownload.setEnabled((mcpver != null && !mcpver.getTarget(BONFiles.FG3_DOWNLOAD_CACHE).exists()));
+        Predicate<MCPVersion> mcNeedsDownload = (ver) -> {
+            if (ver == null) return false;
+            if (!ver.getTarget().exists()) return true;
+            return !new File(BONFiles.FG3_MC_CACHE, ver.getMCVersion() + "/client.jar").exists() ||
+                   !new File(BONFiles.FG3_MC_CACHE, ver.getMCVersion() + "/server.jar").exists();
+        };
+        btnMinecraftVerDownload.setEnabled(mcNeedsDownload.test(mcpver));
 
         cmbMinecraftVers.addActionListener(e -> {
             MinecraftVersion selected = (MinecraftVersion)cmbMinecraftVers.getSelectedItem();
@@ -121,48 +131,61 @@ public class BON2Gui extends JFrame {
                 btnMinecraftVerDownload.setEnabled(false);
             } else {
                 prefs.put(PREFS_KEY_MC_VERSION, selected.toString());
-                MCPVersion v = MCPVersions.get(selected);
-                btnMinecraftVerDownload.setEnabled((v != null && !v.getTarget().exists()));
+                btnMinecraftVerDownload.setEnabled(mcNeedsDownload.test(MCPVersions.get(selected)));
             }
         });
         btnMinecraftVerDownload.addActionListener(e -> {
             btnMinecraftVerDownload.setEnabled(false);
             MinecraftVersion selected = (MinecraftVersion)cmbMinecraftVers.getSelectedItem();
-            MCPVersion v = MCPVersions.get(selected);
-            if (v == null) {
+            MCPVersion smcver = MCPVersions.get(selected);
+            if (smcver == null) {
                 lblProgressText.setText("No Minecraft version selected");
                 return;
             }
-            File target = v.getTarget();
-            if (target.exists()) {
-                lblProgressText.setText("File already exists! " + target.getAbsolutePath());
+
+            if (!mcNeedsDownload.test(smcver)) {
+                lblProgressText.setText("Files already exist!");
                 return;
             }
 
             new Thread(() -> {
-                URL url = null;
-                try {
-                    url = new URL(v.getUrl());
-                    if (!DownloadUtils.downloadWithCache(url, target, false, false, new GUIProgressListener(lblProgressText, masterProgress))) {
+                Map<String, URL> urls = MinecraftVersions.getDownloadUrls(selected);
+                Map<File, URL> files = new HashMap<>();
+                files.put(smcver.getTarget(), BONUtils.toUrl(smcver.getUrl()));
+                if (urls.containsKey("client"))
+                    files.put(new File(BONFiles.FG3_MC_CACHE, smcver.getMCVersion() + "/client.jar"), urls.get("client"));
+                if (urls.containsKey("server"))
+                    files.put(new File(BONFiles.FG3_MC_CACHE, smcver.getMCVersion() + "/server.jar"), urls.get("server"));
+
+                boolean failed = false;
+                for (Entry<File, URL> entry : files.entrySet()) {
+                    File target = entry.getKey();
+                    URL url = entry.getValue();
+                    try {
+                        SwingUtilities.invokeLater(() -> lblProgressText.setText("Downloading " + target.getName()));
+                        if (!DownloadUtils.downloadWithCache(url, target, false, false, new GUIProgressListener(lblProgressText, masterProgress))) {
+                            if (target.exists())
+                                target.delete();
+                            SwingUtilities.invokeLater(() -> {
+                                lblProgressText.setText("Download Failed");
+                                btnMinecraftVerDownload.setEnabled(true);
+                            });
+                            failed = true;
+                        }
+                    } catch (IOException ex) {
+                        System.out.println("Failed to download: " + url + " to " + target.getAbsolutePath());
+                        ex.printStackTrace();
                         if (target.exists())
                             target.delete();
                         SwingUtilities.invokeLater(() -> {
-                            lblProgressText.setText("Download Failed");
+                            lblProgressText.setText("Failed to download: " + ex.getMessage());
                             btnMinecraftVerDownload.setEnabled(true);
                         });
-                    } else {
-                        SwingUtilities.invokeLater(() -> lblProgressText.setText("Download Complete"));
+                        failed = true;
                     }
-                } catch (IOException ex) {
-                    System.out.println("Failed to download: " + url + " to " + target.getAbsolutePath());
-                    ex.printStackTrace();
-                    if (target.exists())
-                        target.delete();
-                    SwingUtilities.invokeLater(() -> {
-                        lblProgressText.setText("Failed to download: " + ex.getMessage());
-                        btnMinecraftVerDownload.setEnabled(true);
-                    });
                 }
+                if (!failed)
+                    SwingUtilities.invokeLater(() -> lblProgressText.setText("Download Complete"));
             }).start();
         });
         //======================================================================================

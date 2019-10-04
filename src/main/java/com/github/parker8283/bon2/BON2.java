@@ -3,7 +3,11 @@ package com.github.parker8283.bon2;
 import java.awt.EventQueue;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.UIManager;
 
@@ -12,10 +16,12 @@ import com.github.parker8283.bon2.cli.CLIProgressListener;
 import com.github.parker8283.bon2.data.BONFiles;
 import com.github.parker8283.bon2.data.IErrorHandler;
 import com.github.parker8283.bon2.data.IProgressListener;
+import com.github.parker8283.bon2.util.BONUtils;
 import com.github.parker8283.bon2.util.DownloadUtils;
 import com.github.parker8283.bon2.util.MCPVersions;
 import com.github.parker8283.bon2.util.MCPVersions.MCPVersion;
 import com.github.parker8283.bon2.util.MappingVersions;
+import com.github.parker8283.bon2.util.MinecraftVersions;
 import com.github.parker8283.bon2.util.MappingVersions.MappingVersion;
 
 import joptsimple.OptionException;
@@ -42,6 +48,7 @@ public class BON2 {
         parser.accepts("outputJar", "The location and name of the output jar. Defaults to same dir and appends \"-deobf\"").withRequiredArg();
         parser.accepts("mcVer", "Minecraft version number").withRequiredArg();
         parser.accepts("mappingsVer", "Mapping version, must be in the format channel_version. Example: stable_18-1.12.2 or snapshot_20191126-1.13, For convienance, the MC version can be excluded and --mcVer will be used.").withRequiredArg().required();
+        parser.accepts("notch", "Enables the full Notch names to MCP names mapping.");
 
         try {
             OptionSet options = parser.parse(args);
@@ -55,6 +62,7 @@ public class BON2 {
                 System.exit(0);
             }
 
+            boolean notch = options.has("notch");
             String inputJar = (String)options.valueOf("inputJar");
             String outputJar = options.has("outputJar") ? (String)options.valueOf("outputJar") : inputJar.replace(".jar", "-deobf.jar");
             String mcVer = (String)options.valueOf("mcVer");
@@ -69,7 +77,7 @@ public class BON2 {
             }
 
             MCPVersion mcp = MCPVersions.get(MinecraftVersion.from(mcVer));
-            if (mcp == null) {
+            if (notch && mcp == null) {
                 System.err.println("The provided Minecraft Version \"" + mcVer +"\" is invalid. MCP/MCPConfig not found.");
                 System.exit(1);
             }
@@ -84,6 +92,7 @@ public class BON2 {
             log(VERSION);
             log("Input JAR:       " + inputJar);
             log("Output JAR:      " + outputJar);
+            log("Notch:           " + notch);
             log("Minecraft:       " + mcp);
             log("Mappings:        " + mappingsVer);
             log("Gradle User Dir: " + BONFiles.GRADLE_CACHES_FOLDER);
@@ -91,23 +100,43 @@ public class BON2 {
             try {
                 IProgressListener progress = new CLIProgressListener();
 
-                File mcpTarget = mcp.getTarget();
-                if (!DownloadUtils.downloadWithCache(new URL(mcp.getUrl()), mcpTarget, false, false, progress)) {
-                    System.err.println("Could not download MCP:");
-                    System.err.println("  URL:    " + mcp.getUrl());
-                    System.err.println("  Target: " + mcpTarget.getAbsolutePath());
-                    System.exit(1);
+                Map<String, URL> urls = MinecraftVersions.getDownloadUrls(mcp.getMCVersion());
+                Map<File, URL> files = new HashMap<>();
+                files.put(mapping.getTarget(), BONUtils.toUrl(mapping.getUrl()));
+                if (notch) {
+                    files.put(mcp.getTarget(), BONUtils.toUrl(mcp.getUrl()));
+                    if (urls.containsKey("client"))
+                        files.put(new File(BONFiles.FG3_MC_CACHE, mcp.getMCVersion() + "/client.jar"), urls.get("client"));
+                    if (urls.containsKey("server"))
+                        files.put(new File(BONFiles.FG3_MC_CACHE, mcp.getMCVersion() + "/server.jar"), urls.get("server"));
                 }
 
-                File mapTarget = mapping.getTarget();
-                if (!DownloadUtils.downloadWithCache(new URL(mapping.getUrl()), mcpTarget, false, false, progress)) {
-                    System.err.println("Could not download Mapping:");
-                    System.err.println("  URL:    " + mapping.getUrl());
-                    System.err.println("  Target: " + mapTarget.getAbsolutePath());
-                    System.exit(1);
+                boolean failed = false;
+                for (Entry<File, URL> entry : files.entrySet()) {
+                    File target = entry.getKey();
+                    URL url = entry.getValue();
+                    try {
+                        log("Downloading " + target.getName());
+                        if (!DownloadUtils.downloadWithCache(url, target, false, false, progress)) {
+                            if (target.exists())
+                                target.delete();
+                            System.err.println("Failed to download: " + url + " to " + target.getAbsolutePath());
+                            failed = true;
+                        }
+                    } catch (IOException ex) {
+                        System.err.println("Failed to download: " + url + " to " + target.getAbsolutePath());
+                        ex.printStackTrace();
+                        if (target.exists())
+                            target.delete();
+                        failed = true;
+                    }
                 }
 
-                BON2Impl.remap(new File(inputJar), new File(outputJar), mcp, mapping, errorHandler, progress);
+                if (failed)
+                    System.exit(1);
+
+                log("Download Complete");
+                BON2Impl.remap(new File(inputJar), new File(outputJar), notch ? mcp : null, mapping, errorHandler, progress);
             } catch(Exception e) {
                 logErr(e.getMessage(), e);
                 System.exit(1);

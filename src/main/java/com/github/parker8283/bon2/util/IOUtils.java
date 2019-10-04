@@ -12,10 +12,6 @@ import java.lang.reflect.Type;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.tree.ClassNode;
-
 import com.github.parker8283.bon2.data.IProgressListener;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -31,24 +27,6 @@ public class IOUtils {
             baos.write(buffer, 0, read);
         }
         return baos.toByteArray();
-    }
-
-    public static ClassNode readClassFromBytes(byte[] bytes) {
-        ClassNode classNode = new ClassNode();
-        ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
-        return classNode;
-    }
-
-    public static byte[] writeClassToBytes(ClassNode classNode) {
-        ClassWriter classWriter = new ClassWriter(0);
-        classNode.accept(classWriter);
-        return classWriter.toByteArray();
-    }
-
-    public static int getSecondToLastIndexOf(String string, char character) {
-        String temp = string.substring(0, string.lastIndexOf(character));
-        return temp.lastIndexOf(character);
     }
 
     public static int copy(InputStream in, OutputStream out) throws IOException {

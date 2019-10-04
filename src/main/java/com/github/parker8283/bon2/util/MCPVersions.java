@@ -91,6 +91,10 @@ public class MCPVersions {
             return this.url;
         }
 
+        public MinecraftVersion getMCVersion() {
+            return this.mcver;
+        }
+
         public File getTarget() {
             return getTarget(BONFiles.FG3_DOWNLOAD_CACHE);
         }
@@ -128,7 +132,7 @@ public class MCPVersions {
 
         @Override
         public File getTarget(File cacheRoot) {
-            return new File(cacheRoot, FORGE_MAVEN + MCP_ROOT + mcver + "/mcp-" + mcver + "-csrg.zip");
+            return new File(cacheRoot, MCP_ROOT + mcver + "/mcp-" + mcver + "-csrg.zip");
         }
 
         @Override
