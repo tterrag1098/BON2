@@ -49,10 +49,34 @@ public class Inheritance {
             return owner;
 
         IMethod mtd = cls.methods.get(name + desc);
-        if (mtd == null)
+        if (mtd == null) {
+            IMethod parent = findMethod(cls, name, desc);
+            if (parent != null) {
+                mtd = new IMethod(cls, parent.access, parent.name, parent.desc, parent);
+                cls.methods.put(name + desc, mtd);
+                return parent.parent.name;
+            }
             return owner;
+        }
 
         return mtd.root == null ? owner : mtd.root.parent.name;
+    }
+
+    private IMethod findMethod(IClass owner, String name, String desc) {
+        if (owner == null)
+            return null;
+
+        IMethod mtd = owner.methods.get(name + desc);
+        if (mtd != null)
+            return mtd;
+
+        for (String intf : owner.interfaces) {
+            mtd = findMethod(classes.get(intf), name, desc);
+            if (mtd != null && (mtd.access & Opcodes.ACC_PRIVATE) == 0)
+                return mtd;
+        }
+
+        return findMethod(classes.get(owner.parent), name, desc);
     }
 
     public String findFieldOwner(String owner, String name, String desc) {
@@ -61,10 +85,35 @@ public class Inheritance {
             return owner;
 
         IField fld = cls.fields.get(name);
-        if (fld == null)
+        if (fld == null) {
+            IField parent = findField(cls, name, desc);
+            if (parent != null) {
+                fld = new IField(cls, parent.access, parent.name, parent.desc, parent);
+                cls.fields.put(name, fld);
+                return parent.parent.name;
+            }
             return owner;
+        }
 
         return fld.root == null ? owner : fld.root.parent.name;
+    }
+
+    private IField findField(IClass owner, String name, String desc) {
+        if (owner == null)
+            return null;
+
+        IField fld = owner.fields.get(name);
+        if (fld != null)
+            return fld;
+
+        for (String intf : owner.interfaces) {
+            fld = findField(classes.get(intf), name, desc);
+
+            if (fld != null && (fld.access & Opcodes.ACC_PRIVATE) == 0)
+                return fld;
+        }
+
+        return findField(classes.get(owner.parent), name, desc);
     }
 
     private boolean bake(IClass cls) {
@@ -183,6 +232,15 @@ public class Inheritance {
             this.string = toAccessString(this.access) + " " + this.parent.name + "." + this.name;
         }
 
+        IField(IClass parent, int access, String name, String desc, IField root) {
+            this.parent = parent;
+            this.name = name;
+            this.access = access;
+            this.desc = desc;
+            this.root = root;
+            this.string = toAccessString(this.access) + " " + this.parent.name + "." + this.name;
+        }
+
         @Override
         public String toString() {
             return string;
@@ -202,6 +260,15 @@ public class Inheritance {
             this.name = method.name;
             this.access = method.access;
             this.desc = method.desc;
+            this.string = toAccessString(this.access) + " " + this.parent.name + "." + this.name + this.desc;
+        }
+
+        IMethod(IClass parent, int access, String name, String desc, IMethod root) {
+            this.parent = parent;
+            this.name = name;
+            this.access = access;
+            this.desc = desc;
+            this.root = root;
             this.string = toAccessString(this.access) + " " + this.parent.name + "." + this.name + this.desc;
         }
 

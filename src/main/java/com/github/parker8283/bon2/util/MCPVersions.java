@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.github.parker8283.bon2.data.BONFiles;
@@ -20,6 +22,8 @@ public class MCPVersions {
     private static final String FORGE_MAVEN = "http://files.minecraftforge.net/maven/";
     private static final String MCP_ROOT = "de/oceanlabs/mcp/mcp/";
     private static final String MCP_CONFIG_ROOT = "de/oceanlabs/mcp/mcp_config/";
+    private static final Pattern SNAPSHOT = Pattern.compile(".+-\\d{8}\\.\\d{6}");
+
 
     private static List<MCPVersion> knownVersions;
 
@@ -57,7 +61,7 @@ public class MCPVersions {
 
     private static Set<MCPVersion> findFromForgeMaven(File cache, String root, Function<String, ? extends MCPVersion> factory) {
         try {
-            if (!DownloadUtils.downloadWithCache(new URL(root + "maven-metadata.json"), cache, false, false)) {
+            if (!DownloadUtils.downloadWithCache(new URL(root + "maven-metadata.json"), cache, true, false)) {
                 System.out.println("Failed to download MCP Version manifest from: " + root + "maven-metadata.json");
                 return Collections.emptySet();
             }
@@ -68,7 +72,8 @@ public class MCPVersions {
 
             Set<MCPVersion> versions = new HashSet<>();
             for (String v : manifest.versions) {
-                versions.add(factory.apply(v));
+                if (!SNAPSHOT.matcher(v).matches())
+                    versions.add(factory.apply(v));
             }
             return versions;
         } catch (IOException e) {
