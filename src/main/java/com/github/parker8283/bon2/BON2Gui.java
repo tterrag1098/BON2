@@ -1,8 +1,15 @@
 package com.github.parker8283.bon2;
 
 import java.awt.Dimension;
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Predicate;
 import java.util.prefs.Preferences;
 
 import javax.swing.*;
@@ -10,30 +17,30 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.EmptyBorder;
 
+import com.github.parker8283.bon2.data.BONFiles;
 import com.github.parker8283.bon2.data.GuiDownloadNew;
-import com.github.parker8283.bon2.data.MappingVersion;
-import com.github.parker8283.bon2.data.VersionLookup;
 import com.github.parker8283.bon2.gui.BrowseListener;
+import com.github.parker8283.bon2.gui.GUIProgressListener;
 import com.github.parker8283.bon2.gui.JarDropTarget;
 import com.github.parker8283.bon2.gui.LinuxBrowseListener;
-import com.github.parker8283.bon2.gui.RefreshListener;
+import com.github.parker8283.bon2.gui.SimpleRefreshListener;
 import com.github.parker8283.bon2.gui.StartListener;
+import com.github.parker8283.bon2.util.BONUtils;
+import com.github.parker8283.bon2.util.DownloadUtils;
+import com.github.parker8283.bon2.util.MCPVersions;
+import com.github.parker8283.bon2.util.MappingVersions;
+import com.github.parker8283.bon2.util.MappingVersions.MappingVersion;
+import com.github.parker8283.bon2.util.MCPVersions.MCPVersion;
+import com.github.parker8283.bon2.util.MinecraftVersions;
 import com.github.parker8283.bon2.util.OSUtils;
-import com.google.common.collect.Lists;
 
-import java.awt.datatransfer.DataFlavor;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DropTarget;
-import java.awt.dnd.DropTargetDropEvent;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.prefs.Preferences;
+import net.minecraftforge.srgutils.MinecraftVersion;
 
 public class BON2Gui extends JFrame {
 
     public static final String ERROR_DIALOG_TITLE = "Error - BON2";
-    public static final String PREFS_KEY_FORGEVER = "forgeVer";
+    private static final String PREFS_KEY_MC_VERSION = "mcVer";
+    private static final String PREFS_KEY_MAP_VERSION = "mapVer";
     public static final String PREFS_KEY_OPEN_LOC = "openLoc";
     public static final String PREFS_KEY_SAVE_LOC = "closeLoc";
 
@@ -41,21 +48,17 @@ public class BON2Gui extends JFrame {
 
     public final Preferences prefs = Preferences.userNodeForPackage(BON2Gui.class);
 
-    private JPanel contentPane;
     private JTextField inputJarLoc;
-    private JLabel lblOutput;
     private JTextField outputJarLoc;
-    private JButton btnBrouseOutput;
-    private JLabel lblForgeVer;
     private JLabel lblProgressText;
     private JProgressBar masterProgress;
 
     public BON2Gui() {
-        setMinimumSize(new Dimension(550, 210));
+        setMinimumSize(new Dimension(550, 240));
         setTitle("BON2");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setBounds(100, 100, 550, 210);
-        contentPane = new JPanel();
+        setBounds(100, 100, 550, 240);
+        JPanel contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
 
@@ -70,78 +73,179 @@ public class BON2Gui extends JFrame {
         }));
 
         JButton btnBrouseInput = new JButton("Browse");
-        
+
         if (OSUtils.getOS() != OSUtils.OS.Linux) {
             btnBrouseInput.addMouseListener(new BrowseListener(this, true, inputJarLoc));
         } else {
             btnBrouseInput.addMouseListener(new LinuxBrowseListener(this, true, inputJarLoc));
         }
-        
-        lblOutput = new JLabel("Output JAR");
+
+        JLabel lblOutput = new JLabel("Output JAR");
         lblOutput.setHorizontalAlignment(SwingConstants.CENTER);
 
         outputJarLoc = new JTextField();
         outputJarLoc.setColumns(10);
         outputJarLoc.setDropTarget(new JarDropTarget(this, path -> outputJarLoc.setText(path)));
 
-        btnBrouseOutput = new JButton("Browse");
-        
+        JButton btnBrouseOutput = new JButton("Browse");
+
         if (OSUtils.getOS() != OSUtils.OS.Linux) {
-          btnBrouseOutput.addMouseListener(new BrowseListener(this, false, outputJarLoc));
+            btnBrouseOutput.addMouseListener(new BrowseListener(this, false, outputJarLoc));
         } else {
-         btnBrouseOutput.addMouseListener(new LinuxBrowseListener(this, false, outputJarLoc)); 
+            btnBrouseOutput.addMouseListener(new LinuxBrowseListener(this, false, outputJarLoc));
         }
 
-        lblForgeVer = new JLabel("Mappings");
-        lblForgeVer.setHorizontalAlignment(SwingConstants.CENTER);
+        //======================================================================================
+        // Minecraft Versions
+        //======================================================================================
+        JLabel lblMinecraftVer = new JLabel("Minecraft");
+        lblMinecraftVer.setHorizontalAlignment(SwingConstants.CENTER);
+        JComboBox<MinecraftVersion> cmbMinecraftVers = new JComboBox<>();
+        JButton btnMinecraftVerRefresh = new JButton("Refresh");
+        JButton btnMinecraftVerDownload = new JButton("Download");
+        Runnable mcVerRefreshCallback = () -> {
+            Object selected = cmbMinecraftVers.getSelectedItem();
+            cmbMinecraftVers.removeAllItems();
+            MinecraftVersions.getKnownVersions(true).stream().filter(v -> MCPVersions.get(v) != null).forEach(v -> cmbMinecraftVers.insertItemAt(v, 0));
+            cmbMinecraftVers.setSelectedItem(selected);
+        };
+        mcVerRefreshCallback.run();
+        btnMinecraftVerRefresh.addMouseListener(new SimpleRefreshListener(mcVerRefreshCallback));
 
-        JComboBox<MappingVersion> forgeVersions = new JComboBox<MappingVersion>();
+        if (!comboBoxSelect(cmbMinecraftVers, prefs.get(PREFS_KEY_MC_VERSION, "")) && cmbMinecraftVers.getItemCount() > 0)
+            cmbMinecraftVers.setSelectedIndex(0);
 
-        JButton btnRefreshVers = new JButton("Refresh");
-        RefreshListener refresh = new RefreshListener(this, forgeVersions);
-        btnRefreshVers.addMouseListener(refresh);
-        try {
-            VersionLookup.INSTANCE.refresh(); // make sure we've queried the json, as this will halt the main thread
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Could not load MCP versions from web, mapping versions may be incomplete.", "Warning", JOptionPane.WARNING_MESSAGE);
-        }
-        refresh.mouseClicked(null); // update the versions initially
-        String forgeVer = prefs.get(PREFS_KEY_FORGEVER, "");
-        for (MappingVersion m : comboBoxToList(forgeVersions)) {
-            if (m.getVersion().contains(forgeVer)) {
-                forgeVersions.setSelectedItem(m);
-            }
-        }
-        
-        // Add this after previously saved value is set
-        forgeVersions.addActionListener(e -> {
-            Object selected = forgeVersions.getSelectedItem();
+        MCPVersion mcpver = MCPVersions.get((MinecraftVersion)cmbMinecraftVers.getSelectedItem());
+        Predicate<MCPVersion> mcNeedsDownload = (ver) -> {
+            if (ver == null) return false;
+            if (!ver.getTarget().exists()) return true;
+            return !new File(BONFiles.FG3_MC_CACHE, ver.getMCVersion() + "/client.jar").exists() ||
+                   !new File(BONFiles.FG3_MC_CACHE, ver.getMCVersion() + "/server.jar").exists();
+        };
+        btnMinecraftVerDownload.setEnabled(mcNeedsDownload.test(mcpver));
+
+        cmbMinecraftVers.addActionListener(e -> {
+            MinecraftVersion selected = (MinecraftVersion)cmbMinecraftVers.getSelectedItem();
             if (selected == null) {
-                prefs.remove(BON2Gui.PREFS_KEY_FORGEVER);
+                prefs.remove(PREFS_KEY_MC_VERSION);
+                btnMinecraftVerDownload.setEnabled(false);
             } else {
-                prefs.put(BON2Gui.PREFS_KEY_FORGEVER, selected.toString());
+                prefs.put(PREFS_KEY_MC_VERSION, selected.toString());
+                btnMinecraftVerDownload.setEnabled(mcNeedsDownload.test(MCPVersions.get(selected)));
             }
         });
-        
-        JButton buttonDownload = new JButton("Download");
-        buttonDownload.addActionListener(e -> {
-            GuiDownloadNew gui;
-            try {
-                gui = new GuiDownloadNew(refresh);
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(BON2Gui.this, ex, "Could not load mappings", JOptionPane.ERROR_MESSAGE);
+        btnMinecraftVerDownload.addActionListener(e -> {
+            btnMinecraftVerDownload.setEnabled(false);
+            MinecraftVersion selected = (MinecraftVersion)cmbMinecraftVers.getSelectedItem();
+            MCPVersion smcver = MCPVersions.get(selected);
+            if (smcver == null) {
+                lblProgressText.setText("No Minecraft version selected");
                 return;
             }
+
+            if (!mcNeedsDownload.test(smcver)) {
+                lblProgressText.setText("Files already exist!");
+                return;
+            }
+
+            new Thread(() -> {
+                Map<String, URL> urls = MinecraftVersions.getDownloadUrls(selected);
+                Map<File, URL> files = new HashMap<>();
+                files.put(smcver.getTarget(), BONUtils.toUrl(smcver.getUrl()));
+                if (urls.containsKey("client"))
+                    files.put(new File(BONFiles.FG3_MC_CACHE, smcver.getMCVersion() + "/client.jar"), urls.get("client"));
+                if (urls.containsKey("server"))
+                    files.put(new File(BONFiles.FG3_MC_CACHE, smcver.getMCVersion() + "/server.jar"), urls.get("server"));
+
+                boolean failed = false;
+                for (Entry<File, URL> entry : files.entrySet()) {
+                    File target = entry.getKey();
+                    URL url = entry.getValue();
+                    try {
+                        SwingUtilities.invokeLater(() -> lblProgressText.setText("Downloading " + target.getName()));
+                        if (!DownloadUtils.downloadWithCache(url, target, false, false, new GUIProgressListener(lblProgressText, masterProgress))) {
+                            if (target.exists())
+                                target.delete();
+                            SwingUtilities.invokeLater(() -> {
+                                lblProgressText.setText("Download Failed");
+                                btnMinecraftVerDownload.setEnabled(true);
+                            });
+                            failed = true;
+                        }
+                    } catch (IOException ex) {
+                        System.out.println("Failed to download: " + url + " to " + target.getAbsolutePath());
+                        ex.printStackTrace();
+                        if (target.exists())
+                            target.delete();
+                        SwingUtilities.invokeLater(() -> {
+                            lblProgressText.setText("Failed to download: " + ex.getMessage());
+                            btnMinecraftVerDownload.setEnabled(true);
+                        });
+                        failed = true;
+                    }
+                }
+                if (!failed)
+                    SwingUtilities.invokeLater(() -> lblProgressText.setText("Download Complete"));
+            }).start();
+        });
+        //======================================================================================
+
+
+        //======================================================================================
+        //Mapping Versions
+        //======================================================================================
+        JLabel lblMappingsVer = new JLabel("Mappings");
+        lblMappingsVer.setHorizontalAlignment(SwingConstants.CENTER);
+        JComboBox<MappingVersion> cmbMappingVersions = new JComboBox<>();
+        JButton btnMappingVerDownload = new JButton("Download");
+        JButton btnMappingVerRefresh = new JButton("Refresh");
+
+        if (MappingVersions.getKnownVersions().isEmpty())
+            JOptionPane.showMessageDialog(this, "Could not load MCP versions from web, mapping versions may be incomplete.", "Warning", JOptionPane.WARNING_MESSAGE);
+
+        Runnable mapVerRefreshCallback = () -> {
+            Object selected = cmbMappingVersions.getSelectedItem();
+            cmbMappingVersions.removeAllItems();
+            MappingVersions.getExistingVersions().forEach(v -> cmbMappingVersions.insertItemAt(v, 0));
+            cmbMappingVersions.setSelectedItem(selected);
+        };
+
+        mapVerRefreshCallback.run();
+        btnMappingVerRefresh.addMouseListener(new SimpleRefreshListener(mapVerRefreshCallback));
+
+        if (!comboBoxSelect(cmbMappingVersions, prefs.get(PREFS_KEY_MAP_VERSION, "")) && cmbMappingVersions.getItemCount() > 0)
+            cmbMappingVersions.setSelectedIndex(0);
+
+        //MappingVersion mapver = (MappingVersion)cmbMappingVersions.getSelectedItem();
+        //btnMappingVerDownload.setEnabled((mapver != null && !mapver.getTarget(BONFiles.FG3_DOWNLOAD_CACHE).exists()));
+
+        cmbMappingVersions.addActionListener(e -> {
+            Object selected = cmbMappingVersions.getSelectedItem();
+            if (selected == null) {
+                prefs.remove(BON2Gui.PREFS_KEY_MAP_VERSION);
+            } else {
+                prefs.put(BON2Gui.PREFS_KEY_MAP_VERSION, selected.toString());
+            }
+        });
+
+        btnMappingVerDownload.addActionListener(e -> {
+            Map<MinecraftVersion, List<MappingVersion>> data = MappingVersions.getKnownVersions();
+            if (data.isEmpty()) {
+                JOptionPane.showMessageDialog(BON2Gui.this, "No known Mapping Versions, check console log for details, or check your internet connection.", "Could not load mappings", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            GuiDownloadNew gui = new GuiDownloadNew(mapVerRefreshCallback, data);
             gui.setLocation(getLocation());
             gui.setVisible(true);
         });
+        //======================================================================================
 
         masterProgress = new JProgressBar();
 
         lblProgressText = new JLabel("Ready!");
 
         JButton btnStart = new JButton("Go!");
-        btnStart.addMouseListener(new StartListener(this, inputJarLoc, outputJarLoc, forgeVersions, lblProgressText, masterProgress));
+        btnStart.addMouseListener(new StartListener(this, inputJarLoc, outputJarLoc, cmbMinecraftVers, cmbMappingVersions, lblProgressText, masterProgress));
 
         lblProgressText.setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -155,22 +259,34 @@ public class BON2Gui extends JFrame {
                         .addComponent(btnStart, GroupLayout.DEFAULT_SIZE, 531, Short.MAX_VALUE)
                         .addGroup(gl_contentPane.createSequentialGroup()
                             .addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING, false)
-                                .addComponent(lblForgeVer, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(lblMappingsVer, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(lblMinecraftVer, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(lblInput, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(lblOutput, GroupLayout.DEFAULT_SIZE, 81, Short.MAX_VALUE))
+                                .addComponent(lblOutput, GroupLayout.DEFAULT_SIZE, 81, Short.MAX_VALUE)
+                            )
                             .addPreferredGap(ComponentPlacement.RELATED)
                             .addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
                                 .addComponent(inputJarLoc, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
                                 .addComponent(outputJarLoc, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
                                 .addGroup(Alignment.TRAILING, gl_contentPane.createSequentialGroup()
-                                    .addComponent(forgeVersions, 0, 225, Short.MAX_VALUE)
+                                    .addComponent(cmbMinecraftVers, 0, 255, Short.MAX_VALUE)
                                     .addPreferredGap(ComponentPlacement.RELATED)
-                                    .addComponent(buttonDownload, GroupLayout.PREFERRED_SIZE, 91, GroupLayout.PREFERRED_SIZE)))
+                                    .addComponent(btnMinecraftVerDownload, GroupLayout.PREFERRED_SIZE, 91, GroupLayout.PREFERRED_SIZE)
+                                )
+                                .addGroup(Alignment.TRAILING, gl_contentPane.createSequentialGroup()
+                                    .addComponent(cmbMappingVersions, 0, 225, Short.MAX_VALUE)
+                                    .addPreferredGap(ComponentPlacement.RELATED)
+                                    .addComponent(btnMappingVerDownload, GroupLayout.PREFERRED_SIZE, 91, GroupLayout.PREFERRED_SIZE)
+                                )
+                            )
                             .addPreferredGap(ComponentPlacement.RELATED)
                             .addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING, false)
-                                .addComponent(btnRefreshVers, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnMappingVerRefresh, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnMinecraftVerRefresh, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(btnBrouseOutput, GroupLayout.DEFAULT_SIZE, 91, Short.MAX_VALUE)
-                                .addComponent(btnBrouseInput, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                .addComponent(btnBrouseInput, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            )
+                        )
                         .addComponent(masterProgress, GroupLayout.DEFAULT_SIZE, 531, Short.MAX_VALUE))
                     .addContainerGap())
         );
@@ -181,18 +297,28 @@ public class BON2Gui extends JFrame {
                     .addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
                         .addComponent(inputJarLoc, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                         .addComponent(btnBrouseInput)
-                        .addComponent(lblInput))
+                        .addComponent(lblInput)
+                    )
                     .addPreferredGap(ComponentPlacement.RELATED)
                     .addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
                         .addComponent(lblOutput)
                         .addComponent(outputJarLoc, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(btnBrouseOutput))
+                        .addComponent(btnBrouseOutput)
+                    )
                     .addPreferredGap(ComponentPlacement.RELATED)
                     .addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
-                        .addComponent(lblForgeVer)
-                        .addComponent(btnRefreshVers)
-                        .addComponent(buttonDownload)
-                        .addComponent(forgeVersions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                        .addComponent(lblMinecraftVer)
+                        .addComponent(btnMinecraftVerRefresh)
+                        .addComponent(btnMinecraftVerDownload)
+                        .addComponent(cmbMinecraftVers, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    )
+                    .addPreferredGap(ComponentPlacement.RELATED)
+                    .addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+                        .addComponent(lblMappingsVer)
+                        .addComponent(btnMappingVerRefresh)
+                        .addComponent(btnMappingVerDownload)
+                        .addComponent(cmbMappingVersions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    )
                     .addPreferredGap(ComponentPlacement.RELATED)
                     .addComponent(btnStart)
                     .addPreferredGap(ComponentPlacement.RELATED)
@@ -201,7 +327,7 @@ public class BON2Gui extends JFrame {
                     .addComponent(lblProgressText)
                     .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        
+
         contentPane.setLayout(gl_contentPane);
     }
 
@@ -209,11 +335,23 @@ public class BON2Gui extends JFrame {
         return outputJarLoc;
     }
 
+    @SuppressWarnings("unused")
     private <T> List<T> comboBoxToList(JComboBox<T> comboBox) {
-        List<T> ret = Lists.newArrayList();
+        List<T> ret = new ArrayList<>();
         for(int i = 0; i < comboBox.getItemCount(); i++) {
             ret.add(comboBox.getItemAt(i));
         }
         return ret;
+    }
+
+    private <T> boolean comboBoxSelect(JComboBox<T> comboBox, String value) {
+        for(int i = 0; i < comboBox.getItemCount(); i++) {
+            T t = comboBox.getItemAt(i);
+            if (t != null && value.equals(t.toString())) {
+                comboBox.setSelectedIndex(i);
+                return true;
+            }
+        }
+        return false;
     }
 }
