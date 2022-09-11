@@ -28,10 +28,10 @@ import com.github.parker8283.bon2.util.BONUtils;
 import com.google.common.collect.Lists;
 
 public class GuiDownloadNew extends JFrame {
-    
-    private static final String MAPPINGS_URL_SNAPSHOT = "http://export.mcpbot.bspk.rs/mcp_snapshot/%1$s-%2$s/mcp_snapshot-%1$s-%2$s.zip";
-    private static final String MAPPINGS_URL_STABLE = "http://export.mcpbot.bspk.rs/mcp_stable/%1$s-%2$s/mcp_stable-%1$s-%2$s.zip";
-    
+
+    private static final String MAPPINGS_URL_SNAPSHOT = "https://github.com/ModCoderPack/MCPMappingsArchive/blob/master/mcp_snapshot/%1$s-%2$s/mcp_snapshot-%1$s-%2$s.zip?raw=true";
+    private static final String MAPPINGS_URL_STABLE = "https://github.com/ModCoderPack/MCPMappingsArchive/blob/master/mcp_stable/%1$s-%2$s/mcp_stable-%1$s-%2$s.zip?raw=true";
+
     private static class MappingListEntry {
         public final boolean stable;
         public final int version;

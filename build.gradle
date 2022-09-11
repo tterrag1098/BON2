@@ -5,7 +5,7 @@ plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
-version = "2.4.0." + (System.getenv('BUILD_NUMBER') ?: 'CUSTOM')
+version = "2.4.1." + (System.getenv('BUILD_NUMBER') ?: 'CUSTOM')
 group = "com.github.parker8283"
 archivesBaseName = "BON"
 
