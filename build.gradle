@@ -1,10 +1,11 @@
-apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
+plugins {
+    id 'java'
+    id "eclipse"
+    id "idea"
+    id "com.github.johnrengelman.shadow" version "7.1.2"
+}
 
-
-version = "2.4.0." + (System.getenv('BUILD_NUMBER') ?: 'CUSTOM')
+version = "2.4.1." + (System.getenv('BUILD_NUMBER') ?: 'CUSTOM')
 group = "com.github.parker8283"
 archivesBaseName = "BON"
 
@@ -13,51 +14,24 @@ repositories {
 }
 
 dependencies {
-    compile 'org.ow2.asm:asm-debug-all:5.0.4'
-    compile 'com.google.guava:guava:18.0'
-    compile 'net.sf.jopt-simple:jopt-simple:4.9'
-	
-	compile group: 'com.google.code.gson', name: 'gson', version: '2.7'
-	compile group: 'net.sf.trove4j', name: 'trove4j', version: '3.0.3'
-	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
+    implementation 'org.ow2.asm:asm-debug-all:5.2'
+    implementation 'com.google.guava:guava:31.1-jre'
+    implementation 'net.sf.jopt-simple:jopt-simple:5.0.4'
+
+    implementation 'com.google.code.gson:gson:2.9.0'
+    implementation 'net.sf.trove4j:trove4j:3.0.3'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
 }
 
-task copyAndReplace(type: Copy) {
-    from(sourceSets.main.java) {
-        include '**/BON2.java'
-        expand 'DEV': project.version
+shadowJar {
+    manifest {
+        attributes 'Main-Class': 'com.github.parker8283.bon2.BON2',
+                'Implementation-Title': 'Bearded Octo Nemesis 2',
+                'Implementation-Version': project.version,
+                'Built-With': 'Gradle v' + project.getGradle().getGradleVersion()
     }
-    from(sourceSets.main.java) {
-        exclude '**/BON2.java'
-    }
-    into project.getBuildDir().toString() + "/sources/java"
-}
-tasks.compileJava.dependsOn copyAndReplace
-tasks.compileJava.setSource(project.getBuildDir().toString() + '/sources/java')
-
-def commonManifest = {
-    attributes 'Main-Class': 'com.github.parker8283.bon2.BON2',
-            'Implementation-Title': 'Bearded Octo Nemesis 2',
-            'Implementation-Version': project.version,
-            'Built-With': 'Gradle v' + project.getGradle().getGradleVersion()
 }
 
-jar {
-    manifest commonManifest
-    classifier = 'bin'
-}
-
-task fatJar(type: Jar, dependsOn: 'jar') {
-    inputs.file jar.archivePath
-    from(configurations.compile.collect { zipTree(it).matching { exclude 'META-INF/**' } })
-    manifest commonManifest
-    classifier = 'all'
-}
-
-fatJar.doFirst {
-    from zipTree(jar.archivePath)
-}
-
-artifacts {
-    archives fatJar
+build {
+    dependsOn shadowJar
 }
